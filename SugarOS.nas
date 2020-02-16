@@ -30,10 +30,10 @@
 
 entry:
 		MOV		AX,0			; 初始化寄存器
-		MOV		SS,AX
-		MOV		SP,0x7c00
-		MOV		DS,AX
-		MOV		ES,AX
+		MOV		SS,AX			; 初始化寄存器
+		MOV		DS,AX			; 初始化寄存器
+		MOV		ES,AX			; 初始化寄存器
+		MOV		SP,0x7c00		; 将栈顶指针(Stack Pointer,SP寄存器)移到ORG
 
 		MOV		SI,msg
 putloop:
