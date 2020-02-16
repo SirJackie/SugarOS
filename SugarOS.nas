@@ -34,8 +34,7 @@ entry:
 		MOV		DS,AX			; 初始化寄存器
 		MOV		ES,AX			; 初始化寄存器
 		MOV		SP,0x7c00		; 将栈顶指针(Stack Pointer,SP寄存器)移到ORG
-
-		MOV		SI,msg
+		MOV		SI,msg          ; 给SI寄存器存入msg的地址
 putloop:
 		MOV		AL,[SI]         ; 读取第SI号内存(RAM[SI])的值到AL寄存器
 		ADD		SI,1			; SI寄存器加1(地址后移一位)
