@@ -1,1 +1,0 @@
-.\Tools\Win32DiskImager\Win32DiskImager.exe .\SugarOS.img
