@@ -1,9 +1,12 @@
 ; SugarOS
 ; TAB=4
 
+		ORG		0x7c00          ; 指明程序的装载地址
+
 ; FAT12引导区设置
 
-		DB		0xeb, 0x4e, 0x90
+		JMP		entry
+		DB		0x90
 		DB		"HELLOIPL"		; 启动区名称(8字节)
 		DW		512				; 扇区大小
 		DB		1				; 簇大小
@@ -17,7 +20,7 @@
 		DW		2				; 磁头数
 		DD		0				; 是否使用分区
 		DD		2880			; 重写一次磁盘大小
-		DB		0,0,0x29		; 
+		DB		0,0,0x29
 		DD		0xffffffff		; 卷标号码
 		DB		"HELLO-OS   "	; 磁盘名称(11字节)
 		DB		"FAT12   "		; 磁盘格式名称(8字节)
@@ -25,27 +28,38 @@
 
 ; 程序主体
 
-		DB		0xb8, 0x00, 0x00, 0x8e, 0xd0, 0xbc, 0x00, 0x7c
-		DB		0x8e, 0xd8, 0x8e, 0xc0, 0xbe, 0x74, 0x7c, 0x8a
-		DB		0x04, 0x83, 0xc6, 0x01, 0x3c, 0x00, 0x74, 0x09
-		DB		0xb4, 0x0e, 0xbb, 0x0f, 0x00, 0xcd, 0x10, 0xeb
-		DB		0xee, 0xf4, 0xeb, 0xfd
+entry:
+		MOV		AX,0			; 初始化寄存器
+		MOV		SS,AX
+		MOV		SP,0x7c00
+		MOV		DS,AX
+		MOV		ES,AX
 
-; 信息显示部分
-		DB		0x0a        ; 换行
-		DB		"SugarOS"
-		DB		0x0a        ; 换行
-		DB      "Release: 2020/02/16"
-		DB		0x0a        ; 换行
-		DB      "Press power button to shutdown."
-		DB		0x0a        ; 换行
+		MOV		SI,msg
+putloop:
+		MOV		AL,[SI]
+		ADD		SI,1			; 给SI加1
+		CMP		AL,0
+		JE		fin
+		MOV		AH,0x0e			; 显示一个文字
+		MOV		BX,15			; 指定字符颜色
+		INT		0x10			; 调用显卡BIOS
+		JMP		putloop
+fin:
+		HLT						; CPU等待
+		JMP		fin				; 无限循环
+
+msg:
+		DB		0x0a, 0x0a		; 换行两次
+		DB		"hello, world"
+		DB		0x0a			; 换行
 		DB		0
 
-		RESB	0x1fe-$			; 写0，直到0x001fc
+		RESB	0x7dfe-$		; 空0直到0x7dfe
 
 		DB		0x55, 0xaa
 
-; 启动区以外部分输出
+; 启动区外部分
 
 		DB		0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
 		RESB	4600
