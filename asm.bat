@@ -1,1 +1,1 @@
-.\Tools\nask.exe SugarOS.nas SugarOS.img
+.\Tools\nask.exe ipl.nas ipl.bin ipl.lst
