@@ -1,6 +1,6 @@
 ; SugarOS
 ; TAB=4
-
+		CYLS	EQU		10		; 磁盘总煮柱面数位10
 		ORG		0x7c00          ; 指明程序的装载地址
 
 ; FAT12引导区设置
@@ -45,7 +45,7 @@ entry:
 readloop:
 		MOV		SI,0            ; 错误次数:0次
 
-read:
+retry:
 		MOV		AH,0x02			; 读盘(AH=0x02)
 		MOV		AL,1			; 读1个扇区
 		MOV		BX,0            ; 空闲
@@ -60,15 +60,25 @@ read:
 		MOV		AH,0x00         ; 重置驱动器(AH=0x00),为下一次read做准备
 		MOV		DL,0x00			; 驱动器A
 		INT		0x13			; 调用磁盘BIOS
-		JMP		read            ; 继续重读
+		JMP		retry           ; 继续重读
 
 next:
 		MOV		AX,ES			; 将ES移到到AX
 		ADD		AX,0x0020       ; 将内存后移0x200(AX+=0x20)
 		MOV		ES,AX			; 将AX移回ES
-		ADD		CL,1			; 扇区位置加1
-		CMP		CL,18			; 比较扇区位置和18
-		JBE		readloop		; 当扇区位置<=18时，继续读取下一个扇区
+		ADD		CL,1			; 扇区 += 1
+		CMP		CL,18			; 比较扇区和18
+		JBE		readloop		; 当扇区 <= 18时，继续读取下一个扇区
+		; 否则说明柱面0磁头0已经读完
+		MOV		CL,1            ; 扇区位置归1
+		ADD		DH,1            ; 磁头 += 1
+		CMP		DH,2            ; 比较磁头和2
+		JB		readloop		; 当磁头 < 2时,继续读下一个磁头
+		; 否则说明柱面0已经读完
+		MOV		DH,0            ; 磁头归0
+		ADD		CH,1            ; 柱面 += 1
+		CMP		CH,CYLS         ; 比较柱面和CYLS总柱面数
+		JB		readloop		; 当柱面小于CYLS总柱面数时,继续读下一个柱面
 
 fin:
 		HLT						; CPU等待
