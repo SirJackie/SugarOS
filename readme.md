@@ -35,7 +35,7 @@ GNU GPL不会授予许可证接受人无限的权利。再发行权的授予需�
 
 关于协议版本，SugarOS本身使用GPL v2协议，Tools文件夹中的开源软件可能使用GPL v2或GPL v3协议，版本视情况而定。
 
-关于GPL v2协议，上述说明仅做参考，具体细节请以license.txt为准，SugarOS原作者Jackie Lin(用户名lyj00912，<https://github.com/lyj00912> )保留一切解释权。
+关于GPL v2协议，上述说明仅做参考，具体细节请以LICENSE为准，SugarOS原作者Jackie Lin(用户名lyj00912，<https://github.com/lyj00912> )保留一切解释权。
 
 # 进度条
 
