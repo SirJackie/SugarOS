@@ -35,13 +35,14 @@ entry:
 		MOV		SP,0x7c00		; 将栈顶指针(Stack Pointer,SP寄存器)移到ORG
 
 		; 读盘
-		
+
 		MOV		AX,0x0820       ; 临时变量
 		MOV		ES,AX           ; 读取数据将要缓冲到0x8200(0x0820<<1)-0x83ff
 		MOV		CH,0			; 柱面0
 		MOV		DH,0			; 磁头0
 		MOV		CL,2			; 扇区2
-		
+
+readloop:
 		MOV		SI,0            ; 错误次数:0次
 
 read:
@@ -51,7 +52,7 @@ read:
 		MOV		DL,0x00			; 驱动器A
 
 		INT		0x13			; 调用磁盘BIOS
-		JNC		fin				; 如果没出错就跳转到fin
+		JNC		next			; 如果没出错就跳转到fin
 		ADD		SI,1			; 否则SI加1
 		CMP		SI,5			; 比较SI和5
 		JAE		error			; 如果SI >= 5,跳转到error
@@ -59,7 +60,15 @@ read:
 		MOV		AH,0x00         ; 重置驱动器(AH=0x00),为下一次read做准备
 		MOV		DL,0x00			; 驱动器A
 		INT		0x13			; 调用磁盘BIOS
-		JMP		read
+		JMP		read            ; 继续重读
+
+next:
+		MOV		AX,ES			; 将ES移到到AX
+		ADD		AX,0x0020       ; 将内存后移0x200(AX+=0x20)
+		MOV		ES,AX			; 将AX移回ES
+		ADD		CL,1			; 扇区位置加1
+		CMP		CL,18			; 比较扇区位置和18
+		JBE		readloop		; 当扇区位置<=18时，继续读取下一个扇区
 
 fin:
 		HLT						; CPU等待
