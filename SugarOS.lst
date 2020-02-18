@@ -1,3 +1,28 @@
-     1 00000000                                 fin:
-     2 00000000 F4                                  HLT
-     3 00000001 EB FD                               JMP fin
+     1 00000000                                 ; SugarOS Main Part
+     2 00000000                                 ; TAB=4
+     3 00000000                                 
+     4                                                  ORG 0xc200
+     5 0000C200 BE C215                                 MOV       SI,msg           ; 指定错误信息字符串地址
+     6 0000C203                                 
+     7 0000C203                                 putloop:
+     8 0000C203 8A 04                                   MOV       AL,[SI]          ; 读取第SI号内存(RAM[SI])的值到AL寄存器
+     9 0000C205 83 C6 01                                ADD       SI,1             ; SI寄存器加1(地址后移一位)
+    10 0000C208 3C 00                                   CMP       AL,0             ; 比较一下AL和0两个数
+    11 0000C20A 74 29                                   JE        fin              ; 如果AL是0(内存中的数据读完了),就跳转到fin
+    12 0000C20C B4 0E                                   MOV       AH,0x0e          ; 否则就显示一个文字
+    13 0000C20E BB 000F                                 MOV       BX,15            ; 指定字符颜色
+    14 0000C211 CD 10                                   INT       0x10             ; 调用显卡BIOS
+    15 0000C213 EB EE                                   JMP       putloop          ; 进行下一个putloop操作
+    16 0000C215                                 
+    17 0000C215                                 msg:
+    18 0000C215 0A                                      DB       0x0a              ; 换行
+    19 0000C216 0A                                      DB       0x0a              ; 换行
+    20 0000C217 53 75 63 63 65 73 73 66 75 6C           DB       "Successfully loaded SugarOS!"
+       0000C221 6C 79 20 6C 6F 61 64 65 64 20 
+       0000C22B 53 75 67 61 72 4F 53 21 
+    21 0000C233 0A                                      DB       0x0a              ; 换行
+    22 0000C234 00                                      DB       0                 ; 保存一个0,让putloop读到它时停止
+    23 0000C235                                 
+    24 0000C235                                 fin:
+    25 0000C235 F4                                      HLT
+    26 0000C236 EB FD                                   JMP fin

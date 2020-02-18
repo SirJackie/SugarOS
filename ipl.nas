@@ -1,4 +1,4 @@
-; SugarOS
+; SugarOS IPL
 ; TAB=4
 
         CYLS      EQU      10      ; 磁盘总煮柱面数位10
@@ -86,8 +86,7 @@ next:
         JB        readloop         ; 当柱面小于CYLS总柱面数时,继续读下一个柱面
 
 fin:
-        HLT                        ; CPU等待
-        JMP       fin              ; 无限循环
+        JMP       0xc200           ; 无限循环
 
 error:
         MOV       SI,msg           ; 指定错误信息字符串地址

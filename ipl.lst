@@ -1,4 +1,4 @@
-     1 00000000                                 ; SugarOS
+     1 00000000                                 ; SugarOS IPL
      2 00000000                                 ; TAB=4
      3 00000000                                 
      4  = 0000000A                                      CYLS      EQU      10      ; 磁盘总煮柱面数位10
@@ -88,32 +88,31 @@
     86 00007CA6 72 BD                                   JB        readloop         ; 当柱面小于CYLS总柱面数时,继续读下一个柱面
     87 00007CA8                                 
     88 00007CA8                                 fin:
-    89 00007CA8 F4                                      HLT                        ; CPU等待
-    90 00007CA9 EB FD                                   JMP       fin              ; 无限循环
-    91 00007CAB                                 
-    92 00007CAB                                 error:
-    93 00007CAB BE 7CC0                                 MOV       SI,msg           ; 指定错误信息字符串地址
-    94 00007CAE                                 
-    95 00007CAE                                 putloop:
-    96 00007CAE 8A 04                                   MOV       AL,[SI]          ; 读取第SI号内存(RAM[SI])的值到AL寄存器
-    97 00007CB0 83 C6 01                                ADD       SI,1             ; SI寄存器加1(地址后移一位)
-    98 00007CB3 3C 00                                   CMP       AL,0             ; 比较一下AL和0两个数
-    99 00007CB5 74 F1                                   JE        fin              ; 如果AL是0(内存中的数据读完了),就跳转到fin
-   100 00007CB7 B4 0E                                   MOV       AH,0x0e          ; 否则就显示一个文字
-   101 00007CB9 BB 000F                                 MOV       BX,15            ; 指定字符颜色
-   102 00007CBC CD 10                                   INT       0x10             ; 调用显卡BIOS
-   103 00007CBE EB EE                                   JMP       putloop          ; 进行下一个putloop操作
-   104 00007CC0                                 
-   105 00007CC0                                 msg:
-   106 00007CC0 0A                                      DB       0x0a              ; 换行
-   107 00007CC1 0A                                      DB       0x0a              ; 换行
-   108 00007CC2 45 72 72 6F 72 3A 20 46 61 69           DB       "Error: Failed to load disk."
+    89 00007CA8 E9 4555                                 JMP       0xc200           ; 无限循环
+    90 00007CAB                                 
+    91 00007CAB                                 error:
+    92 00007CAB BE 7CC0                                 MOV       SI,msg           ; 指定错误信息字符串地址
+    93 00007CAE                                 
+    94 00007CAE                                 putloop:
+    95 00007CAE 8A 04                                   MOV       AL,[SI]          ; 读取第SI号内存(RAM[SI])的值到AL寄存器
+    96 00007CB0 83 C6 01                                ADD       SI,1             ; SI寄存器加1(地址后移一位)
+    97 00007CB3 3C 00                                   CMP       AL,0             ; 比较一下AL和0两个数
+    98 00007CB5 74 F1                                   JE        fin              ; 如果AL是0(内存中的数据读完了),就跳转到fin
+    99 00007CB7 B4 0E                                   MOV       AH,0x0e          ; 否则就显示一个文字
+   100 00007CB9 BB 000F                                 MOV       BX,15            ; 指定字符颜色
+   101 00007CBC CD 10                                   INT       0x10             ; 调用显卡BIOS
+   102 00007CBE EB EE                                   JMP       putloop          ; 进行下一个putloop操作
+   103 00007CC0                                 
+   104 00007CC0                                 msg:
+   105 00007CC0 0A                                      DB       0x0a              ; 换行
+   106 00007CC1 0A                                      DB       0x0a              ; 换行
+   107 00007CC2 45 72 72 6F 72 3A 20 46 61 69           DB       "Error: Failed to load disk."
        00007CCC 6C 65 64 20 74 6F 20 6C 6F 61 
        00007CD6 64 20 64 69 73 6B 2E 
-   109 00007CDD 0A                                      DB       0x0a              ; 换行
-   110 00007CDE 00                                      DB       0                 ; 保存一个0,让putloop读到它时停止
-   111 00007CDF                                 
-   112 00007CDF 00 00 00 00 00 00 00 00 00 00           RESB     0x7dfe-$          ; 用0占位直到0x7dfe这个地方
+   108 00007CDD 0A                                      DB       0x0a              ; 换行
+   109 00007CDE 00                                      DB       0                 ; 保存一个0,让putloop读到它时停止
+   110 00007CDF                                 
+   111 00007CDF 00 00 00 00 00 00 00 00 00 00           RESB     0x7dfe-$          ; 用0占位直到0x7dfe这个地方
        00007CE9 00 00 00 00 00 00 00 00 00 00 
        00007CF3 00 00 00 00 00 00 00 00 00 00 
        00007CFD 00 00 00 00 00 00 00 00 00 00 
@@ -142,5 +141,5 @@
        00007DE3 00 00 00 00 00 00 00 00 00 00 
        00007DED 00 00 00 00 00 00 00 00 00 00 
        00007DF7 00 00 00 00 00 00 00 
-   113 00007DFE                                 
-   114 00007DFE 55 AA                                   DB       0x55, 0xaa        ; 告诉BIOS这个磁盘是可启动的
+   112 00007DFE                                 
+   113 00007DFE 55 AA                                   DB       0x55, 0xaa        ; 告诉BIOS这个磁盘是可启动的
