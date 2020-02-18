@@ -1,38 +1,50 @@
-#默认动作
+TOOLPATH = ./Tools/
+MAKE     = $(TOOLPATH)make.exe -r
+NASK     = $(TOOLPATH)nask.exe
+EDIMG    = $(TOOLPATH)edimg.exe
+IMGTOL   = $(TOOLPATH)imgtol.com
+COPY     = copy
+DEL      = del
+
+# 默认动作
 
 default :
-	make.exe img
+	$(MAKE) img
 
-# 描述文件的处理方法
+# 文件动作
 
 ipl.bin : ipl.nas Makefile
-	./Tools/nask.exe ipl.nas ipl.bin ipl.lst
+	$(NASK) ipl.nas ipl.bin ipl.lst
 
-SugarOS.img : ipl.bin Makefile
-	./Tools/edimg.exe   imgin:./Tools/fdimg0at.tek \
-		wbinimg src:ipl.bin len:512 from:0 to:0   imgout:SugarOS.img
+SugarOS.sys : SugarOS.nas Makefile
+	$(NASK) SugarOS.nas SugarOS.sys SugarOS.lst
 
-# 定义指令
+SugarOS.img : ipl.bin SugarOS.sys Makefile
+	$(EDIMG)   imgin:./Tools/fdimg0at.tek \
+		wbinimg src:ipl.bin len:512 from:0 to:0 \
+		copy from:SugarOS.sys to:@: \
+		imgout:SugarOS.img
 
-asm :
-	make.exe -r ipl.bin
+# 命令动作
 
 img :
-	make.exe -r SugarOS.img
+	$(MAKE) SugarOS.img
 
 run :
-	make.exe img
-	copy SugarOS.img .\Tools\qemu\fdimage0.bin
-	make.exe -C ./Tools/qemu
+	$(MAKE) img
+	$(COPY) SugarOS.img .\Tools\qemu\fdimage0.bin
+	$(MAKE) -C ./Tools/qemu
 
 install :
-	make.exe img
-	./Tools/Win32DiskImager/Win32DiskImager.exe SugarOS.img
+	$(MAKE) img
+	$(IMGTOL) w a: SugarOS.img
 
 clear :
-	-del ipl.bin
-	-del ipl.lst
+	-$(DEL) ipl.bin
+	-$(DEL) ipl.lst
+	-$(DEL) SugarOS.sys
+	-$(DEL) SugarOS.lst
 
 pure :
-	make.exe clear
-	-del SugarOS.img
+	$(MAKE) clear
+	-$(DEL) SugarOS.img
