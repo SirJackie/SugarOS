@@ -2,7 +2,7 @@ TOOLPATH = ./Tools/
 MAKE     = $(TOOLPATH)make.exe -r
 NASK     = $(TOOLPATH)nask.exe
 EDIMG    = $(TOOLPATH)edimg.exe
-IMGTOL   = $(TOOLPATH)imgtol.com
+IMGTOL   = $(TOOLPATH)Win32DiskImager/Win32DiskImager.exe
 COPY     = copy
 DEL      = del
 
@@ -37,7 +37,7 @@ run :
 
 install :
 	$(MAKE) img
-	$(IMGTOL) w a: SugarOS.img
+	$(IMGTOL) SugarOS.img
 
 clear :
 	-$(DEL) ipl.bin
