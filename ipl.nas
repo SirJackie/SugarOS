@@ -86,7 +86,8 @@ next:
         JB        readloop         ; 当柱面小于CYLS总柱面数时,继续读下一个柱面
 
 fin:
-        JMP       0xc200           ; 无限循环
+        MOV       [0x0ff0],CH      ; 保存CYLS的值
+        JMP       0xc200           ; 开始运行载入的程序
 
 error:
         MOV       SI,msg           ; 指定错误信息字符串地址
