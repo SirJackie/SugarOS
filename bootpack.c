@@ -8,10 +8,10 @@ inline void writeVram(int x, int y, int color){
 	*(VramAddr+y*320+x) = color;
 }
 
-void drawRect(int x1, int y1, int x2, int y2, int color){
+void drawRect(int x1, int y1, int width, int height, int color){
 	int x,y;
-	for(y = y1; y < y2; y++){
-		for(x = x1; x < x2; x++){
+	for(y = y1; y < y1+width; y++){
+		for(x = x1; x < x1+width; x++){
 			writeVram(x, y, color);
 		}
 	}
@@ -24,6 +24,11 @@ void HariMain(void)
 	// 	write_mem8(i, 15);
 	// }
 	drawRect(0, 0, 319, 199, 15);
+	int i, k;
+	for(i = 0; i < 32; i++){
+		drawRect(i*6 , i*6, 50, 50, i+32);
+	}
+	
 fin:
 	io_hlt();
 	goto fin;
