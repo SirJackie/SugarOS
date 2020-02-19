@@ -1,0 +1,102 @@
+     1 00000000                                 [FORMAT "WCOFF"]
+     2 00000000                                 [INSTRSET "i486p"]
+     3 00000000                                 [OPTIMIZE 1]
+     4 00000000                                 [OPTION 1]
+     5 00000000                                 [BITS 32]
+     6 00000000                                 	EXTERN	_io_hlt
+     7 00000000                                 [FILE "bootpack.c"]
+     8 00000000                                 	GLOBAL	_VramAddr
+     9                                          [SECTION .data]
+    10 00000000                                 	ALIGNB	4
+    11 00000000                                 _VramAddr:
+    12 00000000 000A0000                        	DD	655360
+    13                                          [SECTION .text]
+    14 00000000                                 	GLOBAL	_drawRect
+    15 00000000                                 _drawRect:
+    16 00000000 55                              	PUSH	EBP
+    17 00000001 89 E5                           	MOV	EBP,ESP
+    18 00000003 57                              	PUSH	EDI
+    19 00000004 56                              	PUSH	ESI
+    20 00000005 53                              	PUSH	EBX
+    21 00000006 52                              	PUSH	EDX
+    22 00000007 8B 4D 0C                        	MOV	ECX,DWORD [12+EBP]
+    23 0000000A 8B 75 10                        	MOV	ESI,DWORD [16+EBP]
+    24 0000000D 8D 04 0E                        	LEA	EAX,DWORD [ESI+ECX*1]
+    25 00000010 39 C1                           	CMP	ECX,EAX
+    26 00000012 7D 3F                           	JGE	L14
+    27 00000014 89 CB                           	MOV	EBX,ECX
+    28 00000016 69 DB 00000140                  	IMUL	EBX,EBX,320
+    29 0000001C                                 L12:
+    30 0000001C 8B 55 08                        	MOV	EDX,DWORD [8+EBP]
+    31 0000001F 8D 04 16                        	LEA	EAX,DWORD [ESI+EDX*1]
+    32 00000022 39 C2                           	CMP	EDX,EAX
+    33 00000024 7D 1D                           	JGE	L16
+    34 00000026                                 L11:
+    35 00000026 A1 [00000000]                   	MOV	EAX,DWORD [_VramAddr]
+    36 0000002B 01 D8                           	ADD	EAX,EBX
+    37 0000002D 89 45 F0                        	MOV	DWORD [-16+EBP],EAX
+    38 00000030 8A 45 18                        	MOV	AL,BYTE [24+EBP]
+    39 00000033 8B 7D F0                        	MOV	EDI,DWORD [-16+EBP]
+    40 00000036 88 04 3A                        	MOV	BYTE [EDX+EDI*1],AL
+    41 00000039 42                              	INC	EDX
+    42 0000003A 8B 45 08                        	MOV	EAX,DWORD [8+EBP]
+    43 0000003D 01 F0                           	ADD	EAX,ESI
+    44 0000003F 39 C2                           	CMP	EDX,EAX
+    45 00000041 7C E3                           	JL	L11
+    46 00000043                                 L16:
+    47 00000043 8B 45 0C                        	MOV	EAX,DWORD [12+EBP]
+    48 00000046 41                              	INC	ECX
+    49 00000047 01 F0                           	ADD	EAX,ESI
+    50 00000049 81 C3 00000140                  	ADD	EBX,320
+    51 0000004F 39 C1                           	CMP	ECX,EAX
+    52 00000051 7C C9                           	JL	L12
+    53 00000053                                 L14:
+    54 00000053 58                              	POP	EAX
+    55 00000054 5B                              	POP	EBX
+    56 00000055 5E                              	POP	ESI
+    57 00000056 5F                              	POP	EDI
+    58 00000057 5D                              	POP	EBP
+    59 00000058 C3                              	RET
+    60 00000059                                 	GLOBAL	_HariMain
+    61 00000059                                 _HariMain:
+    62 00000059 55                              	PUSH	EBP
+    63 0000005A 89 E5                           	MOV	EBP,ESP
+    64 0000005C 56                              	PUSH	ESI
+    65 0000005D 53                              	PUSH	EBX
+    66 0000005E 31 F6                           	XOR	ESI,ESI
+    67 00000060 6A 0F                           	PUSH	15
+    68 00000062 31 DB                           	XOR	EBX,EBX
+    69 00000064 68 000000C7                     	PUSH	199
+    70 00000069 68 0000013F                     	PUSH	319
+    71 0000006E 6A 00                           	PUSH	0
+    72 00000070 6A 00                           	PUSH	0
+    73 00000072 E8 FFFFFF89                     	CALL	_drawRect
+    74 00000077 83 C4 14                        	ADD	ESP,20
+    75 0000007A                                 L22:
+    76 0000007A 8D 46 20                        	LEA	EAX,DWORD [32+ESI]
+    77 0000007D 46                              	INC	ESI
+    78 0000007E 50                              	PUSH	EAX
+    79 0000007F 6A 32                           	PUSH	50
+    80 00000081 6A 32                           	PUSH	50
+    81 00000083 53                              	PUSH	EBX
+    82 00000084 53                              	PUSH	EBX
+    83 00000085 83 C3 06                        	ADD	EBX,6
+    84 00000088 E8 FFFFFF73                     	CALL	_drawRect
+    85 0000008D 83 C4 14                        	ADD	ESP,20
+    86 00000090 83 FE 1F                        	CMP	ESI,31
+    87 00000093 7E E5                           	JLE	L22
+    88 00000095                                 L23:
+    89 00000095 E8 [00000000]                   	CALL	_io_hlt
+    90 0000009A EB F9                           	JMP	L23
+    91 0000009C                                 	GLOBAL	_writeVram
+    92 0000009C                                 _writeVram:
+    93 0000009C 55                              	PUSH	EBP
+    94 0000009D 89 E5                           	MOV	EBP,ESP
+    95 0000009F 8B 45 0C                        	MOV	EAX,DWORD [12+EBP]
+    96 000000A2 8B 55 08                        	MOV	EDX,DWORD [8+EBP]
+    97 000000A5 69 C0 00000140                  	IMUL	EAX,EAX,320
+    98 000000AB 03 05 [00000000]                	ADD	EAX,DWORD [_VramAddr]
+    99 000000B1 8B 4D 10                        	MOV	ECX,DWORD [16+EBP]
+   100 000000B4 88 0C 02                        	MOV	BYTE [EDX+EAX*1],CL
+   101 000000B7 5D                              	POP	EBP
+   102 000000B8 C3                              	RET

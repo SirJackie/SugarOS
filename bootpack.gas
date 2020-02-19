@@ -1,0 +1,103 @@
+	.file	"bootpack.c"
+.globl _VramAddr
+	.data
+	.balign 4
+_VramAddr:
+	.long	655360
+	.text
+	.balign 2
+.globl _drawRect
+	.def	_drawRect;	.scl	2;	.type	32;	.endef
+_drawRect:
+	pushl	%ebp
+	movl	%esp, %ebp
+	pushl	%edi
+	pushl	%esi
+	pushl	%ebx
+	pushl	%edx
+	movl	12(%ebp), %ecx
+	movl	16(%ebp), %esi
+	leal	(%esi,%ecx), %eax
+	cmpl	%eax, %ecx
+	jge	L14
+	movl	%ecx, %ebx
+	imull	$320, %ebx, %ebx
+L12:
+	movl	8(%ebp), %edx
+	leal	(%esi,%edx), %eax
+	cmpl	%eax, %edx
+	jge	L16
+L11:
+	movl	_VramAddr, %eax
+	addl	%ebx, %eax
+	movl	%eax, -16(%ebp)
+	movb	24(%ebp), %al
+	movl	-16(%ebp), %edi
+	movb	%al, (%edx,%edi)
+	incl	%edx
+	movl	8(%ebp), %eax
+	addl	%esi, %eax
+	cmpl	%eax, %edx
+	jl	L11
+L16:
+	movl	12(%ebp), %eax
+	incl	%ecx
+	addl	%esi, %eax
+	addl	$320, %ebx
+	cmpl	%eax, %ecx
+	jl	L12
+L14:
+	popl	%eax
+	popl	%ebx
+	popl	%esi
+	popl	%edi
+	popl	%ebp
+	ret
+	.balign 2
+.globl _HariMain
+	.def	_HariMain;	.scl	2;	.type	32;	.endef
+_HariMain:
+	pushl	%ebp
+	movl	%esp, %ebp
+	pushl	%esi
+	pushl	%ebx
+	xorl	%esi, %esi
+	pushl	$15
+	xorl	%ebx, %ebx
+	pushl	$199
+	pushl	$319
+	pushl	$0
+	pushl	$0
+	call	_drawRect
+	addl	$20, %esp
+L22:
+	leal	32(%esi), %eax
+	incl	%esi
+	pushl	%eax
+	pushl	$50
+	pushl	$50
+	pushl	%ebx
+	pushl	%ebx
+	addl	$6, %ebx
+	call	_drawRect
+	addl	$20, %esp
+	cmpl	$31, %esi
+	jle	L22
+L23:
+	call	_io_hlt
+	jmp	L23
+	.balign 2
+.globl _writeVram
+	.def	_writeVram;	.scl	2;	.type	32;	.endef
+_writeVram:
+	pushl	%ebp
+	movl	%esp, %ebp
+	movl	12(%ebp), %eax
+	movl	8(%ebp), %edx
+	imull	$320, %eax, %eax
+	addl	_VramAddr, %eax
+	movl	16(%ebp), %ecx
+	movb	%cl, (%edx,%eax)
+	popl	%ebp
+	ret
+	.def	_io_hlt;	.scl	2;	.type	32;	.endef

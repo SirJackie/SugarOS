@@ -1,0 +1,20 @@
+text size :    207(0x000CF)
+data size :      4(0x00004)
+bss  size :      0(0x00000)
+
+0x00000024 : (.text)
+0x00000024 : _drawRect
+0x0000007D : _HariMain
+0x000000C0 : _writeVram
+0x000000DD : _io_hlt
+0x000000DD : (.text)
+0x000000DF : _write_mem8
+0x000000EA : (.text)
+0x000000EA : _HariStartup
+0x00000000 : (.data)
+0x00000000 : (.data)
+0x00310000 : (.data)
+0x00310000 : _VramAddr
+0x00000000 : (.bss)
+0x00000000 : (.bss)
+0x00000000 : (.bss)
