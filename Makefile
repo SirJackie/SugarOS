@@ -1,23 +1,50 @@
 TOOLPATH = ./Tools/
+INCPATH  = ./Tools/SugarOS/
+
 MAKE     = $(TOOLPATH)make.exe -r
 NASK     = $(TOOLPATH)nask.exe
+CC1      = $(TOOLPATH)cc1.exe -I$(INCPATH) -Os -Wall -quiet
+GAS2NASK = $(TOOLPATH)gas2nask.exe -a
+OBJ2BIM  = $(TOOLPATH)obj2bim.exe
+BIM2HRB  = $(TOOLPATH)bim2hrb.exe
+RULEFILE = $(TOOLPATH)SugarOS/SugarOS.rul
 EDIMG    = $(TOOLPATH)edimg.exe
 IMGTOL   = $(TOOLPATH)Win32DiskImager/Win32DiskImager.exe
 COPY     = copy
 DEL      = del
 
-# Ä¬ÈÏ¶¯×÷
+# Ä¬ï¿½Ï¶ï¿½ï¿½ï¿½
 
 default :
 	$(MAKE) img
 
-# ÎÄ¼þ¶¯×÷
+# ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½
 
 ipl.bin : ipl.nas Makefile
 	$(NASK) ipl.nas ipl.bin ipl.lst
 
-SugarOS.sys : SugarOS.nas Makefile
-	$(NASK) SugarOS.nas SugarOS.sys SugarOS.lst
+asmhead.bin : asmhead.nas Makefile
+	$(NASK) asmhead.nas asmhead.bin asmhead.lst
+
+bootpack.gas : bootpack.c Makefile
+	$(CC1) -o bootpack.gas bootpack.c
+
+bootpack.nas : bootpack.gas Makefile
+	$(GAS2NASK) bootpack.gas bootpack.nas
+
+bootpack.obj : bootpack.nas Makefile
+	$(NASK) bootpack.nas bootpack.obj bootpack.lst
+
+bootpack.bim : bootpack.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map \
+		bootpack.obj
+# 3MB+64KB=3136KB
+
+bootpack.hrb : bootpack.bim Makefile
+	$(BIM2HRB) bootpack.bim bootpack.hrb 0
+
+SugarOS.sys : asmhead.bin bootpack.hrb Makefile
+	copy /B asmhead.bin+bootpack.hrb SugarOS.sys
 
 SugarOS.img : ipl.bin SugarOS.sys Makefile
 	$(EDIMG)   imgin:./Tools/fdimg0at.tek \
@@ -25,7 +52,7 @@ SugarOS.img : ipl.bin SugarOS.sys Makefile
 		copy from:SugarOS.sys to:@: \
 		imgout:SugarOS.img
 
-# ÃüÁî¶¯×÷
+# ï¿½ï¿½ï¿½î¶¯ï¿½ï¿½
 
 img :
 	$(MAKE) SugarOS.img
@@ -40,11 +67,16 @@ install :
 	$(IMGTOL) SugarOS.img
 
 clear :
-	-$(DEL) ipl.bin
-	-$(DEL) ipl.lst
+	-$(DEL) *.bin
+	-$(DEL) *.lst
+	-$(DEL) *.gas
+	-$(DEL) *.obj
+	-$(DEL) bootpack.nas
+	-$(DEL) bootpack.map
+	-$(DEL) bootpack.bim
+	-$(DEL) bootpack.hrb
 	-$(DEL) SugarOS.sys
-	-$(DEL) SugarOS.lst
-
+	
 pure :
 	$(MAKE) clear
 	-$(DEL) SugarOS.img
