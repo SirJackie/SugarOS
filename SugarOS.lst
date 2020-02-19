@@ -1,10 +1,32 @@
      1 00000000                                 ; SugarOS Main Part
      2 00000000                                 ; TAB=4
      3 00000000                                 
-     4                                              ORG    0xc200
-     5 0000C200 B0 13                               MOV    AL,0x13
-     6 0000C202 B4 00                               MOV    AH,0x00
-     7 0000C204 CD 10                               INT    0x10
-     8 0000C206                                 fin:
-     9 0000C206 F4                                  HLT
-    10 0000C207 EB FD                               JMP    fin
+     4 00000000                                     ; BOOT_INFO
+     5  = 00000FF0                                  CYLS	EQU		0x0ff0            ; 定义变量CYLS(启动区)的地址
+     6  = 00000FF1                                  LEDS	EQU		0x0ff1            ; 定义变量LEDS(键盘状态)的地址
+     7  = 00000FF2                                  VMODE	EQU		0x0ff2            ; 定义变量VMODE(颜色位数)的地址
+     8  = 00000FF4                                  SCRNX	EQU		0x0ff4            ; 定义变量SCRNX(显示器X轴分辨率)的地址
+     9  = 00000FF6                                  SCRNY	EQU		0x0ff6            ; 定义变量SCRNY(显示器Y轴分辨率)的地址
+    10  = 00000FF8                                  VRAM	EQU		0x0ff8            ; 定义变量VRAM(图像缓冲区开始位置)的地址
+    11 00000000                                 
+    12                                              ORG    0xc200                     ; 程序装载位置
+    13 0000C200 B0 13                               MOV    AL,0x13                    ; 设定视频模式(VGA显卡,320x200x8位彩色)
+    14 0000C202 B4 00                               MOV    AH,0x00                    ; 占位
+    15 0000C204 CD 10                               INT    0x10                       ; 调用BIOS
+    16 0000C206                                 
+    17 0000C206                                     ; 储存显示信息
+    18 0000C206                                 
+    19 0000C206 C6 06 0FF2 08                       MOV    BYTE  [VMODE],8	          ; 颜色位数为8位
+    20 0000C20B C7 06 0FF4 0140                     MOV    WORD  [SCRNX],320          ; 屏幕宽度320
+    21 0000C211 C7 06 0FF6 00C8                     MOV    WORD  [SCRNY],200          ; 屏幕高度200
+    22 0000C217 66 C7 06 0FF8 000A0000              MOV    DWORD [VRAM],0x000a0000    ; VRAM开始地址0x000a0000
+    23 0000C220                                 
+    24 0000C220                                     ; 获取键盘状态
+    25 0000C220                                     
+    26 0000C220 B4 02                               MOV    AH,0x02                    ; 设定查询指令
+    27 0000C222 CD 16                               INT    0x16                       ; 调用Keyboard BIOS
+    28 0000C224 A2 0FF1                             MOV    [LEDS],AL                  ; 把BIOS返回值存到LEDS所在内存
+    29 0000C227                                 
+    30 0000C227                                 fin:
+    31 0000C227 F4                                  HLT                               ; 休眠直到被唤醒(鼠标或键盘有动作)
+    32 0000C228 EB FD                               JMP    fin                        ; 如果被唤醒,继续休眠
