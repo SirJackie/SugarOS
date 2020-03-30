@@ -10,6 +10,8 @@
 /*
 ** 全局变量和声明
 */
+#include<stdio.h>
+
 #define COL8_000000		0
 #define COL8_FF0000		1
 #define COL8_00FF00		2
@@ -32,6 +34,9 @@ struct BOOTINFO{
 	short screenWidth, screenHeight;
 	char *VideoRamAddress;
 };
+
+int global_cursorX = 8;
+int global_cursorY = 8;
 
 
 
@@ -114,11 +119,11 @@ void video_refreshBackground(unsigned char* vram, int xsize, int ysize){
 	video_fillRect8(vram, xsize, COL8_FFFFFF, xsize -  3, ysize - 24, xsize -  3, ysize -  3);
 }
 
-void video_putChar8(char *vram, int xsize, int x, int y, char color, char *char_binary){
+void video_putChar8(struct BOOTINFO *binfo, int x, int y, char color, char *char_binary){
 	int i;
 	char *p, d /* data */;
 	for (i = 0; i < 16; i++) {
-		p = vram + (y + i) * xsize + x;
+		p = binfo->VideoRamAddress + (y + i) * binfo->screenWidth + x;
 		d = char_binary[i];
 		if ((d & 0x80) != 0) { p[0] = color; }
 		if ((d & 0x40) != 0) { p[1] = color; }
@@ -132,13 +137,23 @@ void video_putChar8(char *vram, int xsize, int x, int y, char color, char *char_
 	return;
 }
 
-void video_putString8(char *vram, int xsize, int x, int y, char color, unsigned char *stringPointer){
+void video_putString8(struct BOOTINFO *binfo, int x, int y, char color, unsigned char *stringPointer){
 	extern char hankaku[4096];
 	for(; *stringPointer != 0x00; stringPointer++){
-		video_putChar8(vram, xsize,  x, y, color, hankaku + *stringPointer * 16);
+		video_putChar8(binfo,  x, y, color, hankaku + *stringPointer * 16);
 		x += 8;
 	}
 	return;
+}
+
+void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char *stringPointer){
+	video_putString8(binfo,  x+1, y+1, COL8_000000, stringPointer);
+	video_putString8(binfo,  x, y, COL8_FFFFFF, stringPointer);
+}
+
+void video_println(struct BOOTINFO *binfo, unsigned char* string){
+	video_putShadowString8(binfo,  global_cursorX, global_cursorY, string);
+	global_cursorY += 16;
 }
 
 
@@ -155,10 +170,27 @@ void HariMain(void)
 	video_init_palette();
 	video_refreshBackground(binfo->VideoRamAddress, binfo->screenWidth, binfo->screenHeight);
 
-	video_putString8(binfo->VideoRamAddress, binfo->screenWidth,  9, 9, COL8_000000, "A quick brown fox jump over ");
-	video_putString8(binfo->VideoRamAddress, binfo->screenWidth,  8, 8, COL8_FFFFFF, "A quick brown fox jump over ");
-	video_putString8(binfo->VideoRamAddress, binfo->screenWidth,  9, 25, COL8_000000, "the lazy dog.");
-	video_putString8(binfo->VideoRamAddress, binfo->screenWidth,  8, 24, COL8_FFFFFF, "the lazy dog.");
+	video_println(binfo, "A quick brown fox jump over ");
+	video_println(binfo, "the lazy dog.");
+
+	char buffer[20];
+	sprintf(buffer, "binfo->cyls = %d", binfo->cyls);
+	video_println(binfo, buffer);
+
+	sprintf(buffer, "binfo->leds = %d", binfo->leds);
+	video_println(binfo, buffer);
+
+	sprintf(buffer, "binfo->vmode = %d", binfo->vmode);
+	video_println(binfo, buffer);
+
+	sprintf(buffer, "binfo->screenWidth = %d", binfo->screenWidth);
+	video_println(binfo, buffer);
+
+	sprintf(buffer, "binfo->screenHeight = %d", binfo->screenHeight);
+	video_println(binfo, buffer);
+
+	sprintf(buffer, "binfo->VideoRamAddress = 0x%x", binfo->VideoRamAddress);
+	video_println(binfo, buffer);
 
 	for (;;) {
 		io_hlt();
