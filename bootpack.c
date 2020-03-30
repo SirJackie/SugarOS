@@ -95,23 +95,7 @@ void video_fillRect8(unsigned char *vram, int xsize, unsigned char c, int x0, in
 	return;
 }
 
-
-
-
-
-/*
-** 主函数
-*/
-void HariMain(void)
-{
-	struct BOOTINFO *binfo;
-	binfo = (struct BOOTINFO *) 0x0ff0;  //从asmhead.nas里读数据
-	char* vram = binfo->VideoRamAddress;
-	int xsize = binfo->screenWidth;
-	int ysize = binfo->screenHeight;
-
-	video_init_palette();
-	
+void video_refreshBackground(int* vram, int xsize, int ysize){
 	video_fillRect8(vram, xsize, COL8_008484,  0,         0,          xsize -  1, ysize - 29);
 	video_fillRect8(vram, xsize, COL8_C6C6C6,  0,         ysize - 28, xsize -  1, ysize - 28);
 	video_fillRect8(vram, xsize, COL8_FFFFFF,  0,         ysize - 27, xsize -  1, ysize - 27);
@@ -128,6 +112,21 @@ void HariMain(void)
 	video_fillRect8(vram, xsize, COL8_848484, xsize - 47, ysize - 23, xsize - 47, ysize -  4);
 	video_fillRect8(vram, xsize, COL8_FFFFFF, xsize - 47, ysize -  3, xsize -  4, ysize -  3);
 	video_fillRect8(vram, xsize, COL8_FFFFFF, xsize -  3, ysize - 24, xsize -  3, ysize -  3);
+}
+
+
+
+
+/*
+** 主函数
+*/
+void HariMain(void)
+{
+	struct BOOTINFO *binfo;
+	binfo = (struct BOOTINFO *) 0x0ff0;  //从asmhead.nas里读数据
+
+	video_init_palette();
+	video_refreshBackground(binfo->VideoRamAddress, binfo->screenWidth, binfo->screenHeight);
 
 	for (;;) {
 		io_hlt();
