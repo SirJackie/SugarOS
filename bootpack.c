@@ -27,7 +27,11 @@
 #define COL8_008484		14
 #define COL8_848484		15
 
-char* VideoRamAddress = (char *) 0xa0000;
+struct BOOTINFO{
+	char cyls, leds, vmode, reserve;
+	short screenWidth, screenHeight;
+	char *VideoRamAddress;
+};
 
 
 
@@ -81,18 +85,14 @@ void video_init_palette(void){
 	return;
 }
 
-void video_drawPixel(int x, int y, int color){
-	*(VideoRamAddress + y * 320 + x) = color;
-	return;
-}
-
-void video_drawRect(int x1, int y1, int x2, int y2, int color){
-	int tmpx,tmpy;
-	for(tmpy = y1; tmpy <= y2; tmpy++){
-		for(tmpx = x1; tmpx <= x2; tmpx++){
-			video_drawPixel(tmpx, tmpy, color);
+void video_fillRect8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1){
+	int x, y;
+	for(y = y0; y <= y1; y++){
+		for(x = x0; x <= x1; x++){
+			vram[y * xsize + x] = c;
 		}
 	}
+	return;
 }
 
 
@@ -104,27 +104,30 @@ void video_drawRect(int x1, int y1, int x2, int y2, int color){
 */
 void HariMain(void)
 {
-	int xsize = 320;
-	int ysize = 200;
+	struct BOOTINFO *binfo;
+	binfo = (struct BOOTINFO *) 0x0ff0;  //从asmhead.nas里读数据
+	char* vram = binfo->VideoRamAddress;
+	int xsize = binfo->screenWidth;
+	int ysize = binfo->screenHeight;
 
 	video_init_palette();
 	
-	video_drawRect( 0,         0,          xsize -  1, ysize - 29, COL8_008484);
-	video_drawRect( 0,         ysize - 28, xsize -  1, ysize - 28, COL8_C6C6C6);
-	video_drawRect( 0,         ysize - 27, xsize -  1, ysize - 27, COL8_FFFFFF);
-	video_drawRect( 0,         ysize - 26, xsize -  1, ysize -  1, COL8_C6C6C6);
+	video_fillRect8(vram, xsize, COL8_008484,  0,         0,          xsize -  1, ysize - 29);
+	video_fillRect8(vram, xsize, COL8_C6C6C6,  0,         ysize - 28, xsize -  1, ysize - 28);
+	video_fillRect8(vram, xsize, COL8_FFFFFF,  0,         ysize - 27, xsize -  1, ysize - 27);
+	video_fillRect8(vram, xsize, COL8_C6C6C6,  0,         ysize - 26, xsize -  1, ysize -  1);
 
-	video_drawRect( 3,         ysize - 24, 59,         ysize - 24, COL8_FFFFFF);
-	video_drawRect( 2,         ysize - 24,  2,         ysize -  4, COL8_FFFFFF);
-	video_drawRect( 3,         ysize -  4, 59,         ysize -  4, COL8_848484);
-	video_drawRect(59,         ysize - 23, 59,         ysize -  5, COL8_848484);
-	video_drawRect( 2,         ysize -  3, 59,         ysize -  3, COL8_000000);
-	video_drawRect(60,         ysize - 24, 60,         ysize -  3, COL8_000000);
+	video_fillRect8(vram, xsize, COL8_FFFFFF,  3,         ysize - 24, 59,         ysize - 24);
+	video_fillRect8(vram, xsize, COL8_FFFFFF,  2,         ysize - 24,  2,         ysize -  4);
+	video_fillRect8(vram, xsize, COL8_848484,  3,         ysize -  4, 59,         ysize -  4);
+	video_fillRect8(vram, xsize, COL8_848484, 59,         ysize - 23, 59,         ysize -  5);
+	video_fillRect8(vram, xsize, COL8_000000,  2,         ysize -  3, 59,         ysize -  3);
+	video_fillRect8(vram, xsize, COL8_000000, 60,         ysize - 24, 60,         ysize -  3);
 
-	video_drawRect(xsize - 47, ysize - 24, xsize -  4, ysize - 24, COL8_848484);
-	video_drawRect(xsize - 47, ysize - 23, xsize - 47, ysize -  4, COL8_848484);
-	video_drawRect(xsize - 47, ysize -  3, xsize -  4, ysize -  3, COL8_FFFFFF);
-	video_drawRect(xsize -  3, ysize - 24, xsize -  3, ysize -  3, COL8_FFFFFF);
+	video_fillRect8(vram, xsize, COL8_848484, xsize - 47, ysize - 24, xsize -  4, ysize - 24);
+	video_fillRect8(vram, xsize, COL8_848484, xsize - 47, ysize - 23, xsize - 47, ysize -  4);
+	video_fillRect8(vram, xsize, COL8_FFFFFF, xsize - 47, ysize -  3, xsize -  4, ysize -  3);
+	video_fillRect8(vram, xsize, COL8_FFFFFF, xsize -  3, ysize - 24, xsize -  3, ysize -  3);
 
 	for (;;) {
 		io_hlt();
