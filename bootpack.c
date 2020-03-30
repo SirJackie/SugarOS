@@ -155,7 +155,9 @@ void HariMain(void)
 	video_init_palette();
 	video_refreshBackground(binfo->VideoRamAddress, binfo->screenWidth, binfo->screenHeight);
 
+	video_putString8(binfo->VideoRamAddress, binfo->screenWidth,  9, 9, COL8_000000, "A quick brown fox jump over ");
 	video_putString8(binfo->VideoRamAddress, binfo->screenWidth,  8, 8, COL8_FFFFFF, "A quick brown fox jump over ");
+	video_putString8(binfo->VideoRamAddress, binfo->screenWidth,  9, 25, COL8_000000, "the lazy dog.");
 	video_putString8(binfo->VideoRamAddress, binfo->screenWidth,  8, 24, COL8_FFFFFF, "the lazy dog.");
 
 	for (;;) {
