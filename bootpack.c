@@ -156,6 +156,54 @@ void video_println(struct BOOTINFO *binfo, unsigned char* string){
 	global_cursorY += 16;
 }
 
+void video_init_mouse_cursor8(char *mouse, char bc){
+	static char cursor[16][16] = {
+		"**************..",
+		"*OOOOOOOOOOO*...",
+		"*OOOOOOOOOO*....",
+		"*OOOOOOOOO*.....",
+		"*OOOOOOOO*......",
+		"*OOOOOOO*.......",
+		"*OOOOOOO*.......",
+		"*OOOOOOOO*......",
+		"*OOOO**OOO*.....",
+		"*OOO*..*OOO*....",
+		"*OO*....*OOO*...",
+		"*O*......*OOO*..",
+		"**........*OOO*.",
+		"*..........*OOO*",
+		"............*OO*",
+		".............***"
+	};
+	int x, y;
+
+	for (y = 0; y < 16; y++) {
+		for (x = 0; x < 16; x++) {
+			if (cursor[y][x] == '*') {
+				mouse[y * 16 + x] = COL8_000000;
+			}
+			if (cursor[y][x] == 'O') {
+				mouse[y * 16 + x] = COL8_FFFFFF;
+			}
+			if (cursor[y][x] == '.') {
+				mouse[y * 16 + x] = bc;
+			}
+		}
+	}
+	return;
+}
+
+void video_drawBitmap(struct BOOTINFO *binfo, int bitmapWidth, int bitmapHeight, int bitmapX, int bitmapY, char *buffer, int bufferWidth){
+	int x, y;
+	for (y = 0; y < bitmapHeight; y++) {
+		for (x = 0; x < bitmapWidth; x++) {
+			binfo->VideoRamAddress[(bitmapY + y) * binfo->screenWidth + (bitmapX + x)] = buffer[y * bufferWidth + x];
+		}
+	}
+	return;
+}
+
+
 
 
 
@@ -191,6 +239,12 @@ void HariMain(void)
 
 	sprintf(buffer, "binfo->VideoRamAddress = 0x%x", binfo->VideoRamAddress);
 	video_println(binfo, buffer);
+
+	char mcursor[256];
+	int mx = (binfo->screenWidth - 16) / 2;
+	int my = (binfo->screenHeight - 28 - 16) / 2;
+	video_init_mouse_cursor8(mcursor, COL8_008484);
+	video_drawBitmap(binfo, 16, 16, mx, my, mcursor, 16);
 
 	for (;;) {
 		io_hlt();
