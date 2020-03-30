@@ -1,15 +1,15 @@
-TOOLPATH = ./Tools/
+﻿TOOLS = ./Tools/
 INCPATH  = ./Tools/SugarOS/
 
-MAKE     = $(TOOLPATH)make.exe -r
-NASK     = $(TOOLPATH)nask.exe
-CC1      = $(TOOLPATH)cc1.exe -I$(INCPATH) -Os -Wall -quiet
-GAS2NASK = $(TOOLPATH)gas2nask.exe -a
-OBJ2BIM  = $(TOOLPATH)obj2bim.exe
-BIM2HRB  = $(TOOLPATH)bim2hrb.exe
-RULEFILE = $(TOOLPATH)SugarOS/SugarOS.rul
-EDIMG    = $(TOOLPATH)edimg.exe
-IMGTOL   = $(TOOLPATH)Win32DiskImager/Win32DiskImager.exe
+MAKE     = ./Tools/make.exe -r
+NASK     = ./Tools/nask.exe
+CC1      = ./Tools/cc1.exe -I $(INCPATH) -Os -Wall -quiet
+GAS2NASK = ./Tools/gas2nask.exe -a
+OBJ2BIM  = ./Tools/obj2bim.exe
+BIM2HRB  = ./Tools/bim2hrb.exe
+RULEFILE = ./Tools/SugarOS/SugarOS.rul
+EDIMG    = ./Tools/edimg.exe
+IMGTOL   = ./Tools/Win32DiskImager/Win32DiskImager.exe
 COPY     = copy
 DEL      = del
 
@@ -21,7 +21,7 @@ default :
 # �ļ�����
 
 ipl.bin : ipl.nas Makefile
-	$(NASK) ipl.nas ipl.bin ipl.lst
+	./Tools/nask.exe ipl.nas ipl.bin ipl.lst
 
 asmhead.bin : asmhead.nas Makefile
 	$(NASK) asmhead.nas asmhead.bin asmhead.lst
@@ -79,6 +79,7 @@ clear :
 	-$(DEL) bootpack.bim
 	-$(DEL) bootpack.hrb
 	-$(DEL) SugarOS.sys
+	-$(DEL) .\Tools\qemu\fdimage0.bin
 	
 pure :
 	$(MAKE) clear
