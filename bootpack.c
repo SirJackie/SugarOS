@@ -8,8 +8,25 @@
 
 
 /*
-** 全局变量
+** 全局变量和声明
 */
+#define COL8_000000		0
+#define COL8_FF0000		1
+#define COL8_00FF00		2
+#define COL8_FFFF00		3
+#define COL8_0000FF		4
+#define COL8_FF00FF		5
+#define COL8_00FFFF		6
+#define COL8_FFFFFF		7
+#define COL8_C6C6C6		8
+#define COL8_840000		9
+#define COL8_008400		10
+#define COL8_848400		11
+#define COL8_000084		12
+#define COL8_840084		13
+#define COL8_008484		14
+#define COL8_848484		15
+
 char* VideoRamAddress = (char *) 0xa0000;
 
 
@@ -65,14 +82,14 @@ void video_init_palette(void){
 }
 
 void video_drawPixel(int x, int y, int color){
-	*(VideoRamAddress+y*320+x) = color;
+	*(VideoRamAddress + y * 320 + x) = color;
 	return;
 }
 
-void video_drawRect(int x, int y, int width, int height, int color){
+void video_drawRect(int x1, int y1, int x2, int y2, int color){
 	int tmpx,tmpy;
-	for(tmpy = y; tmpy < y + width; tmpy++){
-		for(tmpx = x; tmpx < x + width; tmpx++){
+	for(tmpy = y1; tmpy <= y2; tmpy++){
+		for(tmpx = x1; tmpx <= x2; tmpx++){
 			video_drawPixel(tmpx, tmpy, color);
 		}
 	}
@@ -87,14 +104,29 @@ void video_drawRect(int x, int y, int width, int height, int color){
 */
 void HariMain(void)
 {
+	int xsize = 320;
+	int ysize = 200;
+
 	video_init_palette();
-	video_drawRect(0, 0, 319, 199, 15);
-	int i, k;
-	for(i = 0; i < 32; i++){
-		video_drawRect(i*6 , i*6, 50, 50, i);
-	}
 	
-	for(;;){
+	video_drawRect( 0,         0,          xsize -  1, ysize - 29, COL8_008484);
+	video_drawRect( 0,         ysize - 28, xsize -  1, ysize - 28, COL8_C6C6C6);
+	video_drawRect( 0,         ysize - 27, xsize -  1, ysize - 27, COL8_FFFFFF);
+	video_drawRect( 0,         ysize - 26, xsize -  1, ysize -  1, COL8_C6C6C6);
+
+	video_drawRect( 3,         ysize - 24, 59,         ysize - 24, COL8_FFFFFF);
+	video_drawRect( 2,         ysize - 24,  2,         ysize -  4, COL8_FFFFFF);
+	video_drawRect( 3,         ysize -  4, 59,         ysize -  4, COL8_848484);
+	video_drawRect(59,         ysize - 23, 59,         ysize -  5, COL8_848484);
+	video_drawRect( 2,         ysize -  3, 59,         ysize -  3, COL8_000000);
+	video_drawRect(60,         ysize - 24, 60,         ysize -  3, COL8_000000);
+
+	video_drawRect(xsize - 47, ysize - 24, xsize -  4, ysize - 24, COL8_848484);
+	video_drawRect(xsize - 47, ysize - 23, xsize - 47, ysize -  4, COL8_848484);
+	video_drawRect(xsize - 47, ysize -  3, xsize -  4, ysize -  3, COL8_FFFFFF);
+	video_drawRect(xsize -  3, ysize - 24, xsize -  3, ysize -  3, COL8_FFFFFF);
+
+	for (;;) {
 		io_hlt();
 	}
 }
