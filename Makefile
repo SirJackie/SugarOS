@@ -1,17 +1,19 @@
-﻿TOOLS = ./Tools/
+﻿OBJS = bootpack.obj naskfunc.obj hankaku.obj graphic.obj dsctbl.obj
+
+TOOLPATH = ./Tools/
 INCPATH  = ./Tools/SugarOS/
 
-MAKE     = ./Tools/make.exe -r
-NASK     = ./Tools/nask.exe
-CC1      = ./Tools/cc1.exe -I $(INCPATH) -Os -Wall -quiet
-GAS2NASK = ./Tools/gas2nask.exe -a
-OBJ2BIM  = ./Tools/obj2bim.exe
+MAKE     = $(TOOLPATH)make.exe -r
+NASK     = $(TOOLPATH)nask.exe
+CC1      = $(TOOLPATH)cc1.exe -I$(INCPATH) -Os -Wall -quiet
+GAS2NASK = $(TOOLPATH)gas2nask.exe -a
+OBJ2BIM  = $(TOOLPATH)obj2bim.exe
 MAKEFONT = $(TOOLPATH)makefont.exe
 BIN2OBJ  = $(TOOLPATH)bin2obj.exe
-BIM2HRB  = ./Tools/bim2hrb.exe
-RULEFILE = ./Tools/SugarOS/SugarOS.rul
-EDIMG    = ./Tools/edimg.exe
-IMGTOL   = ./Tools/Win32DiskImager/Win32DiskImager.exe
+BIM2HRB  = $(TOOLPATH)bim2hrb.exe
+RULEFILE = $(TOOLPATH)SugarOS/SugarOS.rul
+EDIMG    = $(TOOLPATH)edimg.exe
+IMGTOL   = $(TOOLPATH)Win32DiskImager/Win32DiskImager.exe
 COPY     = copy
 DEL      = del
 
@@ -46,9 +48,9 @@ hankaku.bin : hankaku.txt Makefile
 hankaku.obj : hankaku.bin Makefile
 	$(BIN2OBJ) hankaku.bin hankaku.obj _hankaku
 
-bootpack.bim : bootpack.obj naskfunc.obj hankaku.obj Makefile
+bootpack.bim : $(OBJS) Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map \
-		bootpack.obj naskfunc.obj hankaku.obj
+		bootpack.obj naskfunc.obj hankaku.obj graphic.obj dsctbl.obj
 # 3MB+64KB=3136KB
 
 bootpack.hrb : bootpack.bim Makefile
@@ -63,7 +65,16 @@ SugarOS.img : ipl.bin SugarOS.sys Makefile
 		copy from:SugarOS.sys to:@: \
 		imgout:SugarOS.img
 
-# �����
+# gas、nas和obj的编译
+
+%.gas : %.c Makefile
+	$(CC1) -o $*.gas $*.c
+
+%.nas : %.gas Makefile
+	$(GAS2NASK) $*.gas $*.nas
+
+%.obj : %.nas Makefile
+	$(NASK) $*.nas $*.obj $*.lst
 
 img :
 	$(MAKE) SugarOS.img
