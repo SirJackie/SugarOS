@@ -63,6 +63,12 @@ void io_out8(int port, int data);
 int  io_load_eflags(void);
 void io_store_eflags(int eflags);
 
+void init_gdtidt(void);
+void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
+void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
+void load_gdtr(int limit, int addr);
+void load_idtr(int limit, int addr);
+
 void video_set_palette(int start, int end, unsigned char *rgb)
 {
 	int i, eflags;
