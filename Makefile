@@ -1,4 +1,4 @@
-﻿OBJS = bootpack.obj naskfunc.obj hankaku.obj graphic.obj dsctbl.obj
+OBJS = bootpack.obj naskfunc.obj hankaku.obj graphic.obj dsctbl.obj
 
 TOOLPATH = ./Tools/
 INCPATH  = ./Tools/SugarOS/
@@ -99,7 +99,7 @@ clear :
 	-$(DEL) bootpack.hrb
 	-$(DEL) SugarOS.sys
 	-$(DEL) .\Tools\qemu\fdimage0.bin
-	
+
 pure :
 	$(MAKE) clear
 	-$(DEL) SugarOS.img
