@@ -163,9 +163,66 @@ void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char 
 	video_putString8(binfo,  x, y, COL8_FFFFFF, stringPointer);
 }
 
+void video_print(struct BOOTINFO *binfo, unsigned char* string){
+	extern char hankaku[4096];
+	int xLimit = binfo->screenWidth  - 8;
+	int yLimit = binfo->screenHeight - 24;
+	if(global_cursorX >= xLimit){
+		global_cursorX =  8;
+		global_cursorY += 16;
+	}
+	if(global_cursorY >= yLimit){
+		video_refreshBackground(binfo->VideoRamAddress, binfo->screenWidth, binfo->screenHeight);
+		global_cursorX = 8;
+		global_cursorY = 8;
+	}
+	for(; *string != 0x00; string++){
+		video_putChar8(binfo,  global_cursorX+1, global_cursorY+1, COL8_000000, hankaku + *string * 16);
+		video_putChar8(binfo,  global_cursorX,   global_cursorY,   COL8_FFFFFF, hankaku + *string * 16);
+		global_cursorX += 8;
+		if(global_cursorX >= xLimit){
+			global_cursorX =  8;
+			global_cursorY += 16;
+		}
+		if(global_cursorY >= yLimit){
+			video_refreshBackground(binfo->VideoRamAddress, binfo->screenWidth, binfo->screenHeight);
+			global_cursorX = 8;
+			global_cursorY = 8;
+		}
+	}
+	return;
+}
+
 void video_println(struct BOOTINFO *binfo, unsigned char* string){
-	video_putShadowString8(binfo,  global_cursorX, global_cursorY, string);
+	extern char hankaku[4096];
+	int xLimit = binfo->screenWidth  - 8;
+	int yLimit = binfo->screenHeight - 24;
+	if(global_cursorX >= xLimit){
+		global_cursorX =  8;
+		global_cursorY += 16;
+	}
+	if(global_cursorY >= yLimit){
+		video_refreshBackground(binfo->VideoRamAddress, binfo->screenWidth, binfo->screenHeight);
+		global_cursorX = 8;
+		global_cursorY = 8;
+	}
+	for(; *string != 0x00; string++){
+		video_putChar8(binfo,  global_cursorX+1, global_cursorY+1, COL8_000000, hankaku + *string * 16);
+		video_putChar8(binfo,  global_cursorX,   global_cursorY,   COL8_FFFFFF, hankaku + *string * 16);
+		global_cursorX += 8;
+		if(global_cursorX >= xLimit){
+			global_cursorX =  8;
+			global_cursorY += 16;
+		}
+		if(global_cursorY >= yLimit){
+			video_refreshBackground(binfo->VideoRamAddress, binfo->screenWidth, binfo->screenHeight);
+			global_cursorX = 8;
+			global_cursorY = 8;
+		}
+	}
+	global_cursorX =  8;
 	global_cursorY += 16;
+	return;
 }
 
 void video_init_mouse_cursor8(char *mouse, char bc){
@@ -294,8 +351,7 @@ void HariMain(void)
 	video_drawBitmap(binfo, 16, 16, mx, my, mcursor, 16);
 
 	//测试英文字母
-	video_println(binfo, "A quick brown fox jump over ");
-	video_println(binfo, "the lazy dog.");
+	video_println(binfo, "A quick brown fox jump over the lazy dog.");
 
 	//打印BootInfo
 	char buffer[20];
