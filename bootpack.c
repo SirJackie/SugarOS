@@ -5,8 +5,6 @@
 
 #include "bootpack.h"
 
-extern struct KEYBUF keybuf;
-
 void HariMain(void)
 {
 	//初始化BootInfo
@@ -48,23 +46,21 @@ void HariMain(void)
 	io_out8(PIC0_IMR, 0xf9); /* PIC1�ƃL�[�{�[�h������(11111001) */
 	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */
 
-	//键盘临时变量
+	//初始化键盘变量和键盘FIFO缓冲区
 	unsigned char i;
 	int j;
+	extern struct FIFO8 keyfifo;
+	unsigned char keybuf[32];
+	fifo8_init(&keyfifo, 32, keybuf);
 
 	//休眠
 	for (;;) {
 		io_cli(); //停止中断
-		if(keybuf.len == 0){ //如果键盘没有被按下
+		if(fifo8_status(&keyfifo) == 0){ //如果键盘没有被按下
 			io_stihlt(); //恢复中断紧接着休眠(sti和hlt的汇编必须连在一起!)
 		}
 		else{
-			i = keybuf.data[keybuf.next_r];
-			keybuf.next_r++;
-			keybuf.len--;
-			if(keybuf.next_r == 32){
-				keybuf.next_r = 0;
-			}
+			i = fifo8_pop(&keyfifo);
 			io_sti();
 			sprintf(buffer, "%02X", i);
 			video_println(binfo, buffer, csptr);

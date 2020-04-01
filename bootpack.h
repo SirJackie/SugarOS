@@ -83,11 +83,6 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define PIC1_ICW3		0x00a1
 #define PIC1_ICW4		0x00a1
 
-struct KEYBUF {
-	unsigned char data[32];
-	int next_r, next_w, len;
-};
-
 void init_pic(void);
 void inthandler21(int *esp);
 void inthandler27(int *esp);
@@ -142,3 +137,17 @@ void video_println(struct BOOTINFO *binfo, unsigned char *string, struct Console
 
 //鼠标部分
 void video_init_mouse_cursor8(char *mouseBitmap, char backgroundColor);
+
+
+/*
+** fifo.c
+*/
+
+struct FIFO8 {
+	unsigned char *buf;
+	int next_r, next_w, size, free, isOverflow;
+};
+void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf);
+int fifo8_push(struct FIFO8 *fifo, unsigned char data);
+int fifo8_pop(struct FIFO8 *fifo);
+int fifo8_status(struct FIFO8 *fifo);

@@ -5,7 +5,7 @@
 
 #include "bootpack.h"
 
-struct KEYBUF keybuf;
+struct FIFO8 keyfifo;
 
 void init_pic(void)
 /* PIC�̏����� */
@@ -36,14 +36,7 @@ void inthandler21(int *esp)
 	unsigned char data;
 	io_out8(PIC0_OCW2, 0x61);	/* IRQ-01��t������PIC�ɒʒm */
 	data = io_in8(PORT_KEYDAT);
-	if (keybuf.len < 32) {
-		keybuf.data[keybuf.next_w] = data;
-		keybuf.next_w++;
-		keybuf.len++;
-		if(keybuf.next_w == 32){
-			keybuf.next_w = 0;
-		}
-	}
+	fifo8_push(&keyfifo, data);
 	return;
 }
 
