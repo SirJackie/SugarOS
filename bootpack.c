@@ -55,14 +55,15 @@ void HariMain(void)
 	//休眠
 	for (;;) {
 		io_cli(); //停止中断
-		if(keybuf.next == 0){ //如果键盘没有被按下
+		if(keybuf.len == 0){ //如果键盘没有被按下
 			io_stihlt(); //恢复中断紧接着休眠(sti和hlt的汇编必须连在一起!)
 		}
 		else{
-			i = keybuf.data[0];
-			keybuf.next--;
-			for (j = 0; j < keybuf.next; j++) {
-				keybuf.data[j] = keybuf.data[j + 1];
+			i = keybuf.data[keybuf.next_r];
+			keybuf.next_r++;
+			keybuf.len--;
+			if(keybuf.next_r == 32){
+				keybuf.next_r = 0;
 			}
 			io_sti();
 			sprintf(buffer, "%02X", i);

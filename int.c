@@ -36,9 +36,13 @@ void inthandler21(int *esp)
 	unsigned char data;
 	io_out8(PIC0_OCW2, 0x61);	/* IRQ-01��t������PIC�ɒʒm */
 	data = io_in8(PORT_KEYDAT);
-	if (keybuf.next < 32) {
-		keybuf.data[keybuf.next] = data;
-		keybuf.next++;
+	if (keybuf.len < 32) {
+		keybuf.data[keybuf.next_w] = data;
+		keybuf.next_w++;
+		keybuf.len++;
+		if(keybuf.next_w == 32){
+			keybuf.next_w = 0;
+		}
 	}
 	return;
 }
@@ -46,7 +50,6 @@ void inthandler21(int *esp)
 void inthandler2c(int *esp)
 /* PS/2�}�E�X����̊��荞�� */
 {
-	extern char hankaku[4096];
 	struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
 	video_putShadowString8(binfo, 8, 8, "INT 2C (IRQ-12) : PS/2 mouse");
 	for (;;) {
