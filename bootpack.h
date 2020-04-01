@@ -69,7 +69,6 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 struct ConsoleStatus {
     void (*callbackWhenRefresh)(struct BOOTINFO *binfo);
     void (*callbackWhenPutChar)(struct BOOTINFO *binfo, int x, int y, char color, char *fontLibrary);
-    char *fontLibrary;
     int console_cursorX;
     int console_cursorY;
 };
@@ -86,8 +85,8 @@ void video_refreshBackground(struct BOOTINFO *binfo, void (*callbackWhenFillRect
 
 //文字部分
 void video_putChar8(struct BOOTINFO *binfo, int x, int y, char color, char *fontLibrary);
-void video_putString8(struct BOOTINFO *binfo, int x, int y, char color, unsigned char *stringPointer, char *fontLibrary);
-void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char *stringPointer, char *fontLibrary);
+void video_putString8(struct BOOTINFO *binfo, int x, int y, char color, unsigned char *stringPointer);
+void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char *stringPointer);
 
 //标准输入输出
 void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs);

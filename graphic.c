@@ -113,17 +113,18 @@ void video_putChar8(struct BOOTINFO *binfo, int x, int y, char color, char *font
 	return;
 }
 
-void video_putString8(struct BOOTINFO *binfo, int x, int y, char color, unsigned char *stringPointer, char *fontLibrary){
+void video_putString8(struct BOOTINFO *binfo, int x, int y, char color, unsigned char *stringPointer){
+	extern char hankaku[4096];
 	for(; *stringPointer != 0x00; stringPointer++){
-		video_putChar8(binfo,  x, y, color, fontLibrary + *stringPointer * 16);
+		video_putChar8(binfo,  x, y, color, hankaku + *stringPointer * 16);
 		x += 8;
 	}
 	return;
 }
 
-void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char *stringPointer, char *fontLibrary){
-	video_putString8(binfo,  x+1, y+1, COL8_000000, stringPointer, fontLibrary);
-	video_putString8(binfo,  x, y, COL8_FFFFFF, stringPointer, fontLibrary);
+void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char *stringPointer){
+	video_putString8(binfo,  x+1, y+1, COL8_000000, stringPointer);
+	video_putString8(binfo,  x, y, COL8_FFFFFF, stringPointer);
 }
 
 
@@ -133,6 +134,7 @@ void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char 
 */
 
 void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
+	extern char hankaku[4096];
 	int xLimit = binfo->screenWidth  - 8;
 	int yLimit = binfo->screenHeight - 24;
 	if(cs->console_cursorX >= xLimit){
@@ -145,8 +147,8 @@ void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleSt
 		cs->console_cursorY = 8;
 	}
 	for(; *string != 0x00; string++){
-		cs->callbackWhenPutChar(binfo,  cs->console_cursorX+1, cs->console_cursorY+1, COL8_000000, cs->fontLibrary + *string * 16);
-		cs->callbackWhenPutChar(binfo,  cs->console_cursorX,   cs->console_cursorY,   COL8_FFFFFF, cs->fontLibrary + *string * 16);
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX+1, cs->console_cursorY+1, COL8_000000, hankaku + *string * 16);
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX,   cs->console_cursorY,   COL8_FFFFFF, hankaku + *string * 16);
 		cs->console_cursorX += 8;
 		if(cs->console_cursorX >= xLimit){
 			cs->console_cursorX =  8;
@@ -162,6 +164,7 @@ void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleSt
 }
 
 void video_println(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
+	extern char hankaku[4096];
 	int xLimit = binfo->screenWidth  - 8;
 	int yLimit = binfo->screenHeight - 24;
 	if(cs->console_cursorX >= xLimit){
@@ -174,8 +177,8 @@ void video_println(struct BOOTINFO *binfo, unsigned char *string, struct Console
 		cs->console_cursorY = 8;
 	}
 	for(; *string != 0x00; string++){
-		cs->callbackWhenPutChar(binfo,  cs->console_cursorX+1, cs->console_cursorY+1, COL8_000000, cs->fontLibrary + *string * 16);
-		cs->callbackWhenPutChar(binfo,  cs->console_cursorX,   cs->console_cursorY,   COL8_FFFFFF, cs->fontLibrary + *string * 16);
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX+1, cs->console_cursorY+1, COL8_000000, hankaku + *string * 16);
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX,   cs->console_cursorY,   COL8_FFFFFF, hankaku + *string * 16);
 		cs->console_cursorX += 8;
 		if(cs->console_cursorX >= xLimit){
 			cs->console_cursorX =  8;

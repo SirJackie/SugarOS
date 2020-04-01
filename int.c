@@ -27,3 +27,36 @@ void init_pic(void)
 
 	return;
 }
+
+void inthandler21(int *esp)
+/* PS/2�L�[�{�[�h����̊��荞�� */
+{
+	struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
+	video_putShadowString8(binfo, 8, 8, "INT 21 (IRQ-1) : PS/2 keyboard");
+	for (;;) {
+		io_hlt();
+	}
+}
+
+void inthandler2c(int *esp)
+/* PS/2�}�E�X����̊��荞�� */
+{
+	extern char hankaku[4096];
+	struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
+	video_putShadowString8(binfo, 8, 8, "INT 2C (IRQ-12) : PS/2 mouse");
+	for (;;) {
+		io_hlt();
+	}
+}
+
+void inthandler27(int *esp)
+/* PIC0����̕s���S���荞�ݑ΍� */
+/* Athlon64X2�@�Ȃǂł̓`�b�v�Z�b�g�̓s���ɂ��PIC�̏��������ɂ��̊��荞�݂�1�x���������� */
+/* ���̊��荞�ݏ����֐��́A���̊��荞�݂ɑ΂��ĉ������Ȃ��ł��߂��� */
+/* �Ȃ��������Ȃ��Ă����́H
+	��  ���̊��荞�݂�PIC���������̓d�C�I�ȃm�C�Y�ɂ���Ĕ����������̂Ȃ̂ŁA
+		�܂��߂ɉ����������Ă��K�v���Ȃ��B									*/
+{
+	io_out8(PIC0_OCW2, 0x67); /* IRQ-07��t������PIC�ɒʒm(7-1�Q��) */
+	return;
+}

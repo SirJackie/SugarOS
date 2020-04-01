@@ -19,13 +19,13 @@ void HariMain(void)
 	cs->callbackWhenRefresh = (void *)video_refreshBackground;
 	cs->console_cursorX = 8;
 	cs->console_cursorY = 8;
-	cs->fontLibrary = hankaku;
 
 	//初始化GDT和IDT
 	init_gdtidt();
 
-	//初始化PIC
+	//初始化PIC中断
 	init_pic();
+	io_sti(); /* 允许中断 */
 
 	//初始化调色板并绘制背景
 	video_init_palette();
@@ -38,28 +38,13 @@ void HariMain(void)
 	video_init_mouse_cursor8(mcursor, COL8_008484);
 	video_drawBitmap(binfo, mx, my, 16, 16, mcursor);
 
-	//测试英文字母
-	video_println(binfo, "A quick brown fox jump over the lazy dog.", cs);
+	//显示鼠标坐标
+	char buffer[40];
+	sprintf(buffer, "(%d, %d)", mx, my);
+	video_putShadowString8(binfo, 0, 0, buffer);
 
-	//打印BootInfo
-	char buffer[20];
-	sprintf(buffer, "binfo->cyls = %d", binfo->cyls);
-	video_println(binfo, buffer, cs);
-
-	sprintf(buffer, "binfo->leds = %d", binfo->leds);
-	video_println(binfo, buffer, cs);
-
-	sprintf(buffer, "binfo->vmode = %d", binfo->vmode);
-	video_println(binfo, buffer, cs);
-
-	sprintf(buffer, "binfo->screenWidth = %d", binfo->screenWidth);
-	video_println(binfo, buffer, cs);
-
-	sprintf(buffer, "binfo->screenHeight = %d", binfo->screenHeight);
-	video_println(binfo, buffer, cs);
-
-	sprintf(buffer, "binfo->VideoRamAddress = 0x%x", binfo->VideoRamAddress);
-	video_println(binfo, buffer, cs);
+	io_out8(PIC0_IMR, 0xf9); /* PIC1�ƃL�[�{�[�h������(11111001) */
+	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */
 
 	//休眠
 	for (;;) {
