@@ -40,6 +40,7 @@ int  io_load_eflags(void);
 void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
+#define ADR_BOOTINFO	0x00000ff0
 
 
 /*
@@ -94,3 +95,22 @@ void video_println(struct BOOTINFO *binfo, unsigned char *string, struct Console
 
 //鼠标部分
 void video_init_mouse_cursor8(char *mouseBitmap, char backgroundColor);
+
+
+/*
+** int.c
+*/
+
+void init_pic(void);
+#define PIC0_ICW1		0x0020
+#define PIC0_OCW2		0x0020
+#define PIC0_IMR		0x0021
+#define PIC0_ICW2		0x0021
+#define PIC0_ICW3		0x0021
+#define PIC0_ICW4		0x0021
+#define PIC1_ICW1		0x00a0
+#define PIC1_OCW2		0x00a0
+#define PIC1_IMR		0x00a1
+#define PIC1_ICW2		0x00a1
+#define PIC1_ICW3		0x00a1
+#define PIC1_ICW4		0x00a1

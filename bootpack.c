@@ -10,7 +10,7 @@ void HariMain(void)
 {
 	//初始化BootInfo
 	struct BOOTINFO *binfo;
-	binfo = (struct BOOTINFO *) 0x0ff0;  //从asmhead.nas里读数据
+	binfo = (struct BOOTINFO *) ADR_BOOTINFO;  //从asmhead.nas里读数据
 
 	//初始化标准输入输出
 	extern char hankaku[4096];
@@ -23,6 +23,9 @@ void HariMain(void)
 
 	//初始化GDT和IDT
 	init_gdtidt();
+
+	//初始化PIC
+	init_pic();
 
 	//初始化调色板并绘制背景
 	video_init_palette();
