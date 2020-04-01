@@ -119,7 +119,8 @@ void HariMain(void)
 				i = fifo8_pop(&mousefifo);
 				io_sti();
 				sprintf(buffer, "Mouse: %02X", i);
-				video_println(binfo, buffer, csptr);
+				video_fillRect8(binfo, 200, 8, 272, 24, COL8_008484);
+				video_putShadowString8(binfo, 200, 8, buffer);
 			}
 		}
 	}
