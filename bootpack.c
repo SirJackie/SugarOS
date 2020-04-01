@@ -9,10 +9,6 @@ extern struct KEYBUF keybuf;
 
 void HariMain(void)
 {
-	//临时变量
-	char i;
-	int count = 0;
-
 	//初始化BootInfo
 	struct BOOTINFO *binfo;
 	binfo = (struct BOOTINFO *) ADR_BOOTINFO;  //从asmhead.nas里读数据
@@ -52,6 +48,9 @@ void HariMain(void)
 	io_out8(PIC0_IMR, 0xf9); /* PIC1�ƃL�[�{�[�h������(11111001) */
 	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */
 
+	//键盘临时变量
+	char keybufTemp;
+
 	//休眠
 	for (;;) {
 		io_cli(); //停止中断
@@ -59,12 +58,10 @@ void HariMain(void)
 			io_stihlt(); //恢复中断紧接着休眠(sti和hlt的汇编必须连在一起!)
 		}
 		else{
-			i = keybuf.data;
+			keybufTemp = keybuf.data;
 			keybuf.flag = 0;
 			io_sti();
-			// sprintf(buffer, "%02X", i);
-			sprintf(buffer, "%d!", count);
-			count += 1;
+			sprintf(buffer, "%02X", keybufTemp);
 			video_println(binfo, buffer, csptr);
 		}
 	}
