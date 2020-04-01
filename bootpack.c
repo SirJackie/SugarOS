@@ -11,6 +11,7 @@ void HariMain(void)
 {
 	//临时变量
 	char i;
+	int count = 0;
 
 	//初始化BootInfo
 	struct BOOTINFO *binfo;
@@ -18,6 +19,7 @@ void HariMain(void)
 
 	//初始化标准输入输出
 	struct ConsoleStatus cs;
+	cs.callbackWhenFillRect = (void *)video_fillRect8;
 	cs.callbackWhenPutChar = (void *)video_putChar8;
 	cs.callbackWhenRefresh = (void *)video_refreshBackground;
 	cs.console_cursorX = 8;
@@ -58,11 +60,11 @@ void HariMain(void)
 		}
 		else{
 			i = keybuf.data;
-			video_putShadowString8(binfo, 8, 24, "hi");
 			keybuf.flag = 0;
 			io_sti();
 			// sprintf(buffer, "%02X", i);
-			sprintf(buffer, "keyboard!");
+			sprintf(buffer, "%d!", count);
+			count += 1;
 			video_println(binfo, buffer, csptr);
 		}
 	}

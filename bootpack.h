@@ -113,7 +113,8 @@ void inthandler2c(int *esp);
 #define COL8_848484		15
 
 struct ConsoleStatus {
-    void (*callbackWhenRefresh)(struct BOOTINFO *binfo);
+	void (*callbackWhenFillRect)(struct BOOTINFO *binfo, int x0, int y0, int x1, int y1, unsigned char color);
+    void (*callbackWhenRefresh)(struct BOOTINFO *binfo, void (*callbackWhenFillRect)());
     void (*callbackWhenPutChar)(struct BOOTINFO *binfo, int x, int y, char color, char *fontLibrary);
     int console_cursorX;
     int console_cursorY;

@@ -132,17 +132,16 @@ void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char 
 /*
 ** 标准输入输出
 */
-
 void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
 	extern char hankaku[4096];
 	int xLimit = binfo->screenWidth  - 8;
-	int yLimit = binfo->screenHeight - 100;
+	int yLimit = binfo->screenHeight -100;
 	if(cs->console_cursorX >= xLimit){
 		cs->console_cursorX =  8;
 		cs->console_cursorY += 16;
 	}
 	if(cs->console_cursorY >= yLimit){
-		cs->callbackWhenRefresh(binfo);
+		cs->callbackWhenRefresh(binfo, cs->callbackWhenFillRect);
 		cs->console_cursorX = 8;
 		cs->console_cursorY = 8;
 	}
@@ -155,10 +154,9 @@ void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleSt
 			cs->console_cursorY += 16;
 		}
 		if(cs->console_cursorY >= yLimit){
-			cs->callbackWhenRefresh(binfo);
+			cs->callbackWhenRefresh(binfo, cs->callbackWhenFillRect);
 			cs->console_cursorX = 8;
 			cs->console_cursorY = 8;
-			video_fillRect8(binfo, 0, 0, 50, 50, COL8_000000);
 		}
 	}
 	return;
@@ -173,7 +171,7 @@ void video_println(struct BOOTINFO *binfo, unsigned char *string, struct Console
 		cs->console_cursorY += 16;
 	}
 	if(cs->console_cursorY >= yLimit){
-		cs->callbackWhenRefresh(binfo);
+		cs->callbackWhenRefresh(binfo, cs->callbackWhenFillRect);
 		cs->console_cursorX = 8;
 		cs->console_cursorY = 8;
 	}
@@ -184,17 +182,15 @@ void video_println(struct BOOTINFO *binfo, unsigned char *string, struct Console
 		if(cs->console_cursorX >= xLimit){
 			cs->console_cursorX =  8;
 			cs->console_cursorY += 16;
-			video_println(binfo, "next!", cs);
 		}
-		// if(cs->console_cursorY >= yLimit){
-		// 	cs->callbackWhenRefresh(binfo);
-		// 	cs->console_cursorX = 8;
-		// 	cs->console_cursorY = 8;
-		// 	video_fillRect8(binfo, 0, 0, 50, 50, COL8_000000);
-		// }
+		if(cs->console_cursorY >= yLimit){
+			cs->callbackWhenRefresh(binfo, cs->callbackWhenFillRect);
+			cs->console_cursorX = 8;
+			cs->console_cursorY = 8;
+		}
 	}
-    // cs->console_cursorX =  8;
-	// cs->console_cursorY += 16;
+    cs->console_cursorX =  8;
+	cs->console_cursorY += 16;
 	return;
 }
 
