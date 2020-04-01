@@ -136,7 +136,7 @@ void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char 
 void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
 	extern char hankaku[4096];
 	int xLimit = binfo->screenWidth  - 8;
-	int yLimit = binfo->screenHeight - 24;
+	int yLimit = binfo->screenHeight - 100;
 	if(cs->console_cursorX >= xLimit){
 		cs->console_cursorX =  8;
 		cs->console_cursorY += 16;
@@ -158,6 +158,7 @@ void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleSt
 			cs->callbackWhenRefresh(binfo);
 			cs->console_cursorX = 8;
 			cs->console_cursorY = 8;
+			video_fillRect8(binfo, 0, 0, 50, 50, COL8_000000);
 		}
 	}
 	return;
@@ -166,7 +167,7 @@ void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleSt
 void video_println(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
 	extern char hankaku[4096];
 	int xLimit = binfo->screenWidth  - 8;
-	int yLimit = binfo->screenHeight - 24;
+	int yLimit = binfo->screenHeight -100;
 	if(cs->console_cursorX >= xLimit){
 		cs->console_cursorX =  8;
 		cs->console_cursorY += 16;
@@ -183,15 +184,17 @@ void video_println(struct BOOTINFO *binfo, unsigned char *string, struct Console
 		if(cs->console_cursorX >= xLimit){
 			cs->console_cursorX =  8;
 			cs->console_cursorY += 16;
+			video_println(binfo, "next!", cs);
 		}
-		if(cs->console_cursorY >= yLimit){
-			cs->callbackWhenRefresh(binfo);
-			cs->console_cursorX = 8;
-			cs->console_cursorY = 8;
-		}
+		// if(cs->console_cursorY >= yLimit){
+		// 	cs->callbackWhenRefresh(binfo);
+		// 	cs->console_cursorX = 8;
+		// 	cs->console_cursorY = 8;
+		// 	video_fillRect8(binfo, 0, 0, 50, 50, COL8_000000);
+		// }
 	}
-    cs->console_cursorX =  8;
-	cs->console_cursorY += 16;
+    // cs->console_cursorX =  8;
+	// cs->console_cursorY += 16;
 	return;
 }
 

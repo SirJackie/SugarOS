@@ -5,20 +5,24 @@
 
 #include "bootpack.h"
 
+extern struct KEYBUF keybuf;
 
 void HariMain(void)
 {
+	//临时变量
+	char i;
+
 	//初始化BootInfo
 	struct BOOTINFO *binfo;
 	binfo = (struct BOOTINFO *) ADR_BOOTINFO;  //从asmhead.nas里读数据
 
 	//初始化标准输入输出
-	extern char hankaku[4096];
-	struct ConsoleStatus *cs;
-	cs->callbackWhenPutChar = (void *)video_putChar8;
-	cs->callbackWhenRefresh = (void *)video_refreshBackground;
-	cs->console_cursorX = 8;
-	cs->console_cursorY = 8;
+	struct ConsoleStatus cs;
+	cs.callbackWhenPutChar = (void *)video_putChar8;
+	cs.callbackWhenRefresh = (void *)video_refreshBackground;
+	cs.console_cursorX = 8;
+	cs.console_cursorY = 8;
+	struct ConsoleStatus *csptr = (struct ConsoleStatus *)&cs;
 
 	//初始化GDT和IDT
 	init_gdtidt();
@@ -41,13 +45,25 @@ void HariMain(void)
 	//显示鼠标坐标
 	char buffer[40];
 	sprintf(buffer, "(%d, %d)", mx, my);
-	video_putShadowString8(binfo, 8, 8, buffer);
+	video_println(binfo, buffer, csptr);
 
 	io_out8(PIC0_IMR, 0xf9); /* PIC1�ƃL�[�{�[�h������(11111001) */
 	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */
 
 	//休眠
 	for (;;) {
-		io_hlt();
+		io_cli(); //停止中断
+		if(keybuf.flag == 0){ //如果键盘没有被按下
+			io_stihlt(); //恢复中断紧接着休眠(sti和hlt的汇编必须连在一起!)
+		}
+		else{
+			i = keybuf.data;
+			video_putShadowString8(binfo, 8, 24, "hi");
+			keybuf.flag = 0;
+			io_sti();
+			// sprintf(buffer, "%02X", i);
+			sprintf(buffer, "keyboard!");
+			video_println(binfo, buffer, csptr);
+		}
 	}
 }
