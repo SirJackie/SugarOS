@@ -41,7 +41,7 @@ void HariMain(void)
 	//显示鼠标坐标
 	char buffer[40];
 	sprintf(buffer, "(%d, %d)", mx, my);
-	video_putShadowString8(binfo, 0, 0, buffer);
+	video_putShadowString8(binfo, 8, 8, buffer);
 
 	io_out8(PIC0_IMR, 0xf9); /* PIC1�ƃL�[�{�[�h������(11111001) */
 	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */

@@ -28,14 +28,20 @@ void init_pic(void)
 	return;
 }
 
+#define PORT_KEYDAT		0x0060
+
 void inthandler21(int *esp)
-/* PS/2�L�[�{�[�h����̊��荞�� */
 {
 	struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
-	video_putShadowString8(binfo, 8, 8, "INT 21 (IRQ-1) : PS/2 keyboard");
-	for (;;) {
-		io_hlt();
-	}
+	unsigned char data, s[4];
+	io_out8(PIC0_OCW2, 0x61);	/* IRQ-01��t������PIC�ɒʒm */
+	data = io_in8(PORT_KEYDAT);
+
+	sprintf(s, "%02X", data);
+	video_fillRect8(binfo, 8, 24, 24, 40, COL8_000000);
+	video_putShadowString8(binfo, 8, 24, s);
+
+	return;
 }
 
 void inthandler2c(int *esp)
