@@ -5,12 +5,10 @@
 
 #include "bootpack.h"
 
-
-int console_cursorX = 8;
-int console_cursorY = 8;
-
-void video_set_palette(int start, int end, unsigned char *rgb)
-{
+/*
+** 调色板部分
+*/
+void video_set_palette(int start, int end, unsigned char *rgb){
 	int i, eflags;
 	eflags = io_load_eflags();	/* 保存eflags值 */
 	io_cli(); 					/* 停止中断 */
@@ -48,41 +46,61 @@ void video_init_palette(void){
 	return;
 }
 
-void video_fillRect8(unsigned char *vram, int xsize, unsigned char color, int x0, int y0, int x1, int y1){
+
+/*
+** 绘图部分
+*/
+
+void video_fillRect8(struct BOOTINFO *binfo, int x0, int y0, int x1, int y1, unsigned char color){
 	int x, y;
 	for(y = y0; y <= y1; y++){
 		for(x = x0; x <= x1; x++){
-			vram[y * xsize + x] = color;
+			binfo->VideoRamAddress[y * binfo->screenWidth + x] = color;
 		}
 	}
 	return;
 }
 
-void video_refreshBackground(unsigned char* vram, int xsize, int ysize){
-	video_fillRect8(vram, xsize, COL8_008484,  0,         0,          xsize -  1, ysize - 29);
-	video_fillRect8(vram, xsize, COL8_C6C6C6,  0,         ysize - 28, xsize -  1, ysize - 28);
-	video_fillRect8(vram, xsize, COL8_FFFFFF,  0,         ysize - 27, xsize -  1, ysize - 27);
-	video_fillRect8(vram, xsize, COL8_C6C6C6,  0,         ysize - 26, xsize -  1, ysize -  1);
-
-	video_fillRect8(vram, xsize, COL8_FFFFFF,  3,         ysize - 24, 59,         ysize - 24);
-	video_fillRect8(vram, xsize, COL8_FFFFFF,  2,         ysize - 24,  2,         ysize -  4);
-	video_fillRect8(vram, xsize, COL8_848484,  3,         ysize -  4, 59,         ysize -  4);
-	video_fillRect8(vram, xsize, COL8_848484, 59,         ysize - 23, 59,         ysize -  5);
-	video_fillRect8(vram, xsize, COL8_000000,  2,         ysize -  3, 59,         ysize -  3);
-	video_fillRect8(vram, xsize, COL8_000000, 60,         ysize - 24, 60,         ysize -  3);
-
-	video_fillRect8(vram, xsize, COL8_848484, xsize - 47, ysize - 24, xsize -  4, ysize - 24);
-	video_fillRect8(vram, xsize, COL8_848484, xsize - 47, ysize - 23, xsize - 47, ysize -  4);
-	video_fillRect8(vram, xsize, COL8_FFFFFF, xsize - 47, ysize -  3, xsize -  4, ysize -  3);
-	video_fillRect8(vram, xsize, COL8_FFFFFF, xsize -  3, ysize - 24, xsize -  3, ysize -  3);
+void video_drawBitmap(struct BOOTINFO *binfo, int bitmapX, int bitmapY, int bitmapWidth, int bitmapHeight, char *bitmap){
+	int x, y;
+	for (y = 0; y < bitmapHeight; y++) {
+		for (x = 0; x < bitmapWidth; x++) {
+			binfo->VideoRamAddress[(bitmapY + y) * binfo->screenWidth + (bitmapX + x)] = bitmap[y * bitmapWidth + x];
+		}
+	}
+	return;
 }
 
-void video_putChar8(struct BOOTINFO *binfo, int x, int y, char color, char *char_binary){
+void video_refreshBackground(struct BOOTINFO *binfo, void (*callbackWhenFillRect)()){
+	callbackWhenFillRect(binfo,  0,         0,          binfo->screenWidth -  1, binfo->screenHeight - 29, COL8_008484);
+	callbackWhenFillRect(binfo,  0,         binfo->screenHeight - 28, binfo->screenWidth -  1, binfo->screenHeight - 28, COL8_C6C6C6);
+	callbackWhenFillRect(binfo,  0,         binfo->screenHeight - 27, binfo->screenWidth -  1, binfo->screenHeight - 27, COL8_FFFFFF);
+	callbackWhenFillRect(binfo,  0,         binfo->screenHeight - 26, binfo->screenWidth -  1, binfo->screenHeight -  1, COL8_C6C6C6);
+
+	callbackWhenFillRect(binfo,  3,         binfo->screenHeight - 24, 59,         binfo->screenHeight - 24, COL8_FFFFFF);
+	callbackWhenFillRect(binfo,  2,         binfo->screenHeight - 24,  2,         binfo->screenHeight -  4, COL8_FFFFFF);
+	callbackWhenFillRect(binfo,  3,         binfo->screenHeight -  4, 59,         binfo->screenHeight -  4, COL8_848484);
+	callbackWhenFillRect(binfo, 59,         binfo->screenHeight - 23, 59,         binfo->screenHeight -  5, COL8_848484);
+	callbackWhenFillRect(binfo,  2,         binfo->screenHeight -  3, 59,         binfo->screenHeight -  3, COL8_000000);
+	callbackWhenFillRect(binfo, 60,         binfo->screenHeight - 24, 60,         binfo->screenHeight -  3, COL8_000000);
+
+	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight - 24, binfo->screenWidth -  4, binfo->screenHeight - 24, COL8_848484);
+	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight - 23, binfo->screenWidth - 47, binfo->screenHeight -  4, COL8_848484);
+	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight -  3, binfo->screenWidth -  4, binfo->screenHeight -  3, COL8_FFFFFF);
+	callbackWhenFillRect(binfo, binfo->screenWidth -  3, binfo->screenHeight - 24, binfo->screenWidth -  3, binfo->screenHeight -  3, COL8_FFFFFF);
+}
+
+
+/*
+** 文字部分
+*/
+
+void video_putChar8(struct BOOTINFO *binfo, int x, int y, char color, char *fontLibrary){
 	int i;
 	char *p, d /* data */;
 	for (i = 0; i < 16; i++) {
 		p = binfo->VideoRamAddress + (y + i) * binfo->screenWidth + x;
-		d = char_binary[i];
+		d = fontLibrary[i];
 		if ((d & 0x80) != 0) { p[0] = color; }
 		if ((d & 0x40) != 0) { p[1] = color; }
 		if ((d & 0x20) != 0) { p[2] = color; }
@@ -95,83 +113,91 @@ void video_putChar8(struct BOOTINFO *binfo, int x, int y, char color, char *char
 	return;
 }
 
-void video_putString8(struct BOOTINFO *binfo, int x, int y, char color, unsigned char *stringPointer){
-	extern char hankaku[4096];
+void video_putString8(struct BOOTINFO *binfo, int x, int y, char color, unsigned char *stringPointer, char *fontLibrary){
 	for(; *stringPointer != 0x00; stringPointer++){
-		video_putChar8(binfo,  x, y, color, hankaku + *stringPointer * 16);
+		video_putChar8(binfo,  x, y, color, fontLibrary + *stringPointer * 16);
 		x += 8;
 	}
 	return;
 }
 
-void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char *stringPointer){
-	video_putString8(binfo,  x+1, y+1, COL8_000000, stringPointer);
-	video_putString8(binfo,  x, y, COL8_FFFFFF, stringPointer);
+void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char *stringPointer, char *fontLibrary){
+	video_putString8(binfo,  x+1, y+1, COL8_000000, stringPointer, fontLibrary);
+	video_putString8(binfo,  x, y, COL8_FFFFFF, stringPointer, fontLibrary);
 }
 
-void video_print(struct BOOTINFO *binfo, unsigned char* string){
-	extern char hankaku[4096];
+
+
+/*
+** 标准输入输出
+*/
+
+void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
 	int xLimit = binfo->screenWidth  - 8;
 	int yLimit = binfo->screenHeight - 24;
-	if(console_cursorX >= xLimit){
-		console_cursorX =  8;
-		console_cursorY += 16;
+	if(cs->console_cursorX >= xLimit){
+		cs->console_cursorX =  8;
+		cs->console_cursorY += 16;
 	}
-	if(console_cursorY >= yLimit){
-		video_refreshBackground(binfo->VideoRamAddress, binfo->screenWidth, binfo->screenHeight);
-		console_cursorX = 8;
-		console_cursorY = 8;
+	if(cs->console_cursorY >= yLimit){
+		cs->callbackWhenRefresh(binfo);
+		cs->console_cursorX = 8;
+		cs->console_cursorY = 8;
 	}
 	for(; *string != 0x00; string++){
-		video_putChar8(binfo,  console_cursorX+1, console_cursorY+1, COL8_000000, hankaku + *string * 16);
-		video_putChar8(binfo,  console_cursorX,   console_cursorY,   COL8_FFFFFF, hankaku + *string * 16);
-		console_cursorX += 8;
-		if(console_cursorX >= xLimit){
-			console_cursorX =  8;
-			console_cursorY += 16;
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX+1, cs->console_cursorY+1, COL8_000000, cs->fontLibrary + *string * 16);
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX,   cs->console_cursorY,   COL8_FFFFFF, cs->fontLibrary + *string * 16);
+		cs->console_cursorX += 8;
+		if(cs->console_cursorX >= xLimit){
+			cs->console_cursorX =  8;
+			cs->console_cursorY += 16;
 		}
-		if(console_cursorY >= yLimit){
-			video_refreshBackground(binfo->VideoRamAddress, binfo->screenWidth, binfo->screenHeight);
-			console_cursorX = 8;
-			console_cursorY = 8;
+		if(cs->console_cursorY >= yLimit){
+			cs->callbackWhenRefresh(binfo);
+			cs->console_cursorX = 8;
+			cs->console_cursorY = 8;
 		}
 	}
 	return;
 }
 
-void video_println(struct BOOTINFO *binfo, unsigned char* string){
-	extern char hankaku[4096];
+void video_println(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
 	int xLimit = binfo->screenWidth  - 8;
 	int yLimit = binfo->screenHeight - 24;
-	if(console_cursorX >= xLimit){
-		console_cursorX =  8;
-		console_cursorY += 16;
+	if(cs->console_cursorX >= xLimit){
+		cs->console_cursorX =  8;
+		cs->console_cursorY += 16;
 	}
-	if(console_cursorY >= yLimit){
-		video_refreshBackground(binfo->VideoRamAddress, binfo->screenWidth, binfo->screenHeight);
-		console_cursorX = 8;
-		console_cursorY = 8;
+	if(cs->console_cursorY >= yLimit){
+		cs->callbackWhenRefresh(binfo);
+		cs->console_cursorX = 8;
+		cs->console_cursorY = 8;
 	}
 	for(; *string != 0x00; string++){
-		video_putChar8(binfo,  console_cursorX+1, console_cursorY+1, COL8_000000, hankaku + *string * 16);
-		video_putChar8(binfo,  console_cursorX,   console_cursorY,   COL8_FFFFFF, hankaku + *string * 16);
-		console_cursorX += 8;
-		if(console_cursorX >= xLimit){
-			console_cursorX =  8;
-			console_cursorY += 16;
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX+1, cs->console_cursorY+1, COL8_000000, cs->fontLibrary + *string * 16);
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX,   cs->console_cursorY,   COL8_FFFFFF, cs->fontLibrary + *string * 16);
+		cs->console_cursorX += 8;
+		if(cs->console_cursorX >= xLimit){
+			cs->console_cursorX =  8;
+			cs->console_cursorY += 16;
 		}
-		if(console_cursorY >= yLimit){
-			video_refreshBackground(binfo->VideoRamAddress, binfo->screenWidth, binfo->screenHeight);
-			console_cursorX = 8;
-			console_cursorY = 8;
+		if(cs->console_cursorY >= yLimit){
+			cs->callbackWhenRefresh(binfo);
+			cs->console_cursorX = 8;
+			cs->console_cursorY = 8;
 		}
 	}
-	console_cursorX =  8;
-	console_cursorY += 16;
+    cs->console_cursorX =  8;
+	cs->console_cursorY += 16;
 	return;
 }
 
-void video_init_mouse_cursor8(char *mouse, char bc){
+
+/*
+** 鼠标部分
+*/
+
+void video_init_mouse_cursor8(char *mouseBitmap, char backgroundColor){
 	static char cursor[16][16] = {
 		"**************..",
 		"*OOOOOOOOOOO*...",
@@ -195,24 +221,14 @@ void video_init_mouse_cursor8(char *mouse, char bc){
 	for (y = 0; y < 16; y++) {
 		for (x = 0; x < 16; x++) {
 			if (cursor[y][x] == '*') {
-				mouse[y * 16 + x] = COL8_000000;
+				mouseBitmap[y * 16 + x] = COL8_000000;
 			}
 			if (cursor[y][x] == 'O') {
-				mouse[y * 16 + x] = COL8_FFFFFF;
+				mouseBitmap[y * 16 + x] = COL8_FFFFFF;
 			}
 			if (cursor[y][x] == '.') {
-				mouse[y * 16 + x] = bc;
+				mouseBitmap[y * 16 + x] = backgroundColor;
 			}
-		}
-	}
-	return;
-}
-
-void video_drawBitmap(struct BOOTINFO *binfo, int bitmapWidth, int bitmapHeight, int bitmapX, int bitmapY, char *buffer, int bufferWidth){
-	int x, y;
-	for (y = 0; y < bitmapHeight; y++) {
-		for (x = 0; x < bitmapWidth; x++) {
-			binfo->VideoRamAddress[(bitmapY + y) * binfo->screenWidth + (bitmapX + x)] = buffer[y * bufferWidth + x];
 		}
 	}
 	return;

@@ -29,7 +29,10 @@ struct BOOTINFO{
 	char *VideoRamAddress;
 };
 
-/* asmhead.nas */
+
+/*
+** asmhead.nas
+*/
 void io_hlt(void);
 void io_cli(void);
 void io_out8(int port, int data);
@@ -38,7 +41,10 @@ void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
 
-/* dsctbl.c */
+
+/*
+** dsctbl.c
+*/
 struct SEGMENT_DESCRIPTOR {
 	short limit_low, base_low;
 	char base_mid, access_right;
@@ -54,3 +60,37 @@ struct GATE_DESCRIPTOR {
 void init_gdtidt(void);
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
 void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
+
+
+/*
+** graphic.c
+*/
+struct ConsoleStatus {
+    void (*callbackWhenRefresh)(struct BOOTINFO *binfo);
+    void (*callbackWhenPutChar)(struct BOOTINFO *binfo, int x, int y, char color, char *fontLibrary);
+    char *fontLibrary;
+    int console_cursorX;
+    int console_cursorY;
+};
+
+//调色板部分
+void video_set_palette(int start, int end, unsigned char *rgb);
+void video_init_palette(void);
+
+//绘图部分
+void video_fillRect8(struct BOOTINFO *binfo, int x0, int y0, int x1, int y1, unsigned char color);
+void video_drawBitmap(struct BOOTINFO *binfo, int bitmapX, int bitmapY, int bitmapWidth, int bitmapHeight, char *bitmap);
+void video_refreshBackground(struct BOOTINFO *binfo, void (*callbackWhenFillRect)());
+void video_refreshBackground(struct BOOTINFO *binfo, void (*callbackWhenFillRect)());
+
+//文字部分
+void video_putChar8(struct BOOTINFO *binfo, int x, int y, char color, char *fontLibrary);
+void video_putString8(struct BOOTINFO *binfo, int x, int y, char color, unsigned char *stringPointer, char *fontLibrary);
+void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char *stringPointer, char *fontLibrary);
+
+//标准输入输出
+void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs);
+void video_println(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs);
+
+//鼠标部分
+void video_init_mouse_cursor8(char *mouseBitmap, char backgroundColor);
