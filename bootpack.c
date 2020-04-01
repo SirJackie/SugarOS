@@ -5,6 +5,51 @@
 
 #include "bootpack.h"
 
+extern struct FIFO8 keyfifo, mousefifo;
+
+#define PORT_KEYDAT				0x0060
+#define PORT_KEYSTA				0x0064
+#define PORT_KEYCMD				0x0064
+#define KEYSTA_SEND_NOTREADY	0x02
+#define KEYCMD_WRITE_MODE		0x60
+#define KBC_MODE				0x47
+
+void wait_KBC_sendready(void)
+{
+	/* �L�[�{�[�h�R���g���[�����f�[�^���M�\�ɂȂ�̂�҂� */
+	for (;;) {
+		if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
+			break;
+		}
+	}
+	return;
+}
+
+void init_keyboard(void)
+{
+	/* �L�[�{�[�h�R���g���[���̏����� */
+	wait_KBC_sendready();
+	io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
+	wait_KBC_sendready();
+	io_out8(PORT_KEYDAT, KBC_MODE);
+	return;
+}
+
+#define KEYCMD_SENDTO_MOUSE		0xd4
+#define MOUSECMD_ENABLE			0xf4
+
+void enable_mouse(void)
+{
+	/* �}�E�X�L�� */
+	wait_KBC_sendready();
+	io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
+	wait_KBC_sendready();
+	io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
+	return; /* ���܂�������ACK(0xfa)�����M����Ă��� */
+}
+
+
+
 void HariMain(void)
 {
 	//初始化BootInfo
@@ -46,69 +91,36 @@ void HariMain(void)
 	io_out8(PIC0_IMR, 0xf9); /* PIC1�ƃL�[�{�[�h������(11111001) */
 	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */
 
-	//初始化键盘变量和键盘FIFO缓冲区
+	//临时变量
 	unsigned char i;
-	int j;
-	extern struct FIFO8 keyfifo;
+
+	//初始化键盘和鼠标FIFO缓冲区
 	unsigned char keybuf[32];
 	fifo8_init(&keyfifo, 32, keybuf);
+	unsigned char mousebuf[32];
+	fifo8_init(&mousefifo, 128, mousebuf);
 
-	//通过PIC初始化键盘和鼠标
+	//初始化键盘和鼠标PIC
 	init_keyboard();
 	enable_mouse();
-
-	//休眠
-	for (;;) {
-		io_cli(); //停止中断
-		if(fifo8_status(&keyfifo) == 0){ //如果键盘没有被按下
-			io_stihlt(); //恢复中断紧接着休眠(sti和hlt的汇编必须连在一起!)
-		}
-		else{
-			i = fifo8_pop(&keyfifo);
-			io_sti();
-			sprintf(buffer, "%02X", i);
-			video_println(binfo, buffer, csptr);
-		}
-	}
-}
-
-#define PORT_KEYDAT				0x0060
-#define PORT_KEYSTA				0x0064
-#define PORT_KEYCMD				0x0064
-#define KEYSTA_SEND_NOTREADY	0x02
-#define KEYCMD_WRITE_MODE		0x60
-#define KBC_MODE				0x47
-
-void wait_KBC_sendready(void)
-{
-	/* �L�[�{�[�h�R���g���[�����f�[�^���M�\�ɂȂ�̂�҂� */
-	for (;;) {
-		if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
-			break;
+	
+	for(;;){
+		io_cli();
+		if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) == 0) {
+			io_stihlt();
+		} else {
+			if (fifo8_status(&keyfifo) != 0) {
+				i = fifo8_pop(&keyfifo);
+				io_sti();
+				sprintf(buffer, "Keyboard: %02X", i);
+				video_println(binfo, buffer, csptr);
+			}
+			if (fifo8_status(&mousefifo) != 0) {
+				i = fifo8_pop(&mousefifo);
+				io_sti();
+				sprintf(buffer, "Mouse: %02X", i);
+				video_println(binfo, buffer, csptr);
+			}
 		}
 	}
-	return;
-}
-
-void init_keyboard(void)
-{
-	/* �L�[�{�[�h�R���g���[���̏����� */
-	wait_KBC_sendready();
-	io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
-	wait_KBC_sendready();
-	io_out8(PORT_KEYDAT, KBC_MODE);
-	return;
-}
-
-#define KEYCMD_SENDTO_MOUSE		0xd4
-#define MOUSECMD_ENABLE			0xf4
-
-void enable_mouse(void)
-{
-	/* �}�E�X�L�� */
-	wait_KBC_sendready();
-	io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
-	wait_KBC_sendready();
-	io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
-	return; /* ���܂�������ACK(0xfa)�����M����Ă��� */
 }
