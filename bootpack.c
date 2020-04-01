@@ -49,7 +49,7 @@ void HariMain(void)
 	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */
 
 	//键盘临时变量
-	char keybufTemp;
+	unsigned char keybufTemp;
 
 	//休眠
 	for (;;) {
