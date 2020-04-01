@@ -31,7 +31,7 @@ void HariMain(void)
 	video_init_palette();
 	video_refreshBackground(binfo, (void *)video_fillRect8);
 
-	//初始化并绘制鼠标
+	//初始化鼠标图像,并绘制鼠标
 	char mcursor[256];
 	int mx = (binfo->screenWidth - 16) / 2;
 	int my = (binfo->screenHeight - 28 - 16) / 2;
@@ -53,6 +53,10 @@ void HariMain(void)
 	unsigned char keybuf[32];
 	fifo8_init(&keyfifo, 32, keybuf);
 
+	//通过PIC初始化键盘和鼠标
+	init_keyboard();
+	enable_mouse();
+
 	//休眠
 	for (;;) {
 		io_cli(); //停止中断
@@ -66,4 +70,45 @@ void HariMain(void)
 			video_println(binfo, buffer, csptr);
 		}
 	}
+}
+
+#define PORT_KEYDAT				0x0060
+#define PORT_KEYSTA				0x0064
+#define PORT_KEYCMD				0x0064
+#define KEYSTA_SEND_NOTREADY	0x02
+#define KEYCMD_WRITE_MODE		0x60
+#define KBC_MODE				0x47
+
+void wait_KBC_sendready(void)
+{
+	/* �L�[�{�[�h�R���g���[�����f�[�^���M�\�ɂȂ�̂�҂� */
+	for (;;) {
+		if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
+			break;
+		}
+	}
+	return;
+}
+
+void init_keyboard(void)
+{
+	/* �L�[�{�[�h�R���g���[���̏����� */
+	wait_KBC_sendready();
+	io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
+	wait_KBC_sendready();
+	io_out8(PORT_KEYDAT, KBC_MODE);
+	return;
+}
+
+#define KEYCMD_SENDTO_MOUSE		0xd4
+#define MOUSECMD_ENABLE			0xf4
+
+void enable_mouse(void)
+{
+	/* �}�E�X�L�� */
+	wait_KBC_sendready();
+	io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
+	wait_KBC_sendready();
+	io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
+	return; /* ���܂�������ACK(0xfa)�����M����Ă��� */
 }
