@@ -34,11 +34,11 @@ void init_pic(void)
 void inthandler21(int *esp)
 {
 	unsigned char data;
-	io_out8(PIC0_OCW2, 0x61);	/* 通知PIC IRQ-01中断已经处理完毕 */
+	io_out8(PIC0_OCW2, 0x61);	/* IRQ-01��t������PIC�ɒʒm */
 	data = io_in8(PORT_KEYDAT);
-	if(keybuf.flag == 0){
-		keybuf.data = data;
-		keybuf.flag = 1;
+	if (keybuf.next < 32) {
+		keybuf.data[keybuf.next] = data;
+		keybuf.next++;
 	}
 	return;
 }

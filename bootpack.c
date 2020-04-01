@@ -49,19 +49,23 @@ void HariMain(void)
 	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */
 
 	//键盘临时变量
-	unsigned char keybufTemp;
+	unsigned char i;
+	int j;
 
 	//休眠
 	for (;;) {
 		io_cli(); //停止中断
-		if(keybuf.flag == 0){ //如果键盘没有被按下
+		if(keybuf.next == 0){ //如果键盘没有被按下
 			io_stihlt(); //恢复中断紧接着休眠(sti和hlt的汇编必须连在一起!)
 		}
 		else{
-			keybufTemp = keybuf.data;
-			keybuf.flag = 0;
+			i = keybuf.data[0];
+			keybuf.next--;
+			for (j = 0; j < keybuf.next; j++) {
+				keybuf.data[j] = keybuf.data[j + 1];
+			}
 			io_sti();
-			sprintf(buffer, "%02X", keybufTemp);
+			sprintf(buffer, "%02X", i);
 			video_println(binfo, buffer, csptr);
 		}
 	}

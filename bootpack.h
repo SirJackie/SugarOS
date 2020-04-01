@@ -83,8 +83,9 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define PIC1_ICW3		0x00a1
 #define PIC1_ICW4		0x00a1
 
-struct KEYBUF{
-	unsigned char data, flag;
+struct KEYBUF {
+	unsigned char data[32];
+	int next;
 };
 
 void init_pic(void);
