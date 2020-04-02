@@ -1,5 +1,8 @@
-; SugarOS IPL
-; TAB=4
+
+;;
+;; SugarOS IPL引导区部分
+;;
+
 
         CYLS      EQU      10      ; 磁盘总煮柱面数位10
         ORG       0x7c00           ; 指明程序的装载地址
