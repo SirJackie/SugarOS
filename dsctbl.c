@@ -1,14 +1,20 @@
-/* GDT��IDT�Ȃǂ́A descriptor table �֌W */
+
+/*
+** SugarOS GDT/IDT表初始化
+*/
 
 #include "bootpack.h"
 
+
 void init_gdtidt(void)
+/* 初始化GDT和IDT表 */
 {
+	//获取GDT和IDT指针
 	struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
 	struct GATE_DESCRIPTOR    *idt = (struct GATE_DESCRIPTOR    *) ADR_IDT;
 	int i;
 
-	/* GDT�̏����� */
+	/* GDT初始化 */
 	for (i = 0; i <= LIMIT_GDT / 8; i++) {
 		set_segmdesc(gdt + i, 0, 0, 0);
 	}
@@ -16,26 +22,29 @@ void init_gdtidt(void)
 	set_segmdesc(gdt + 2, LIMIT_BOTPAK, ADR_BOTPAK, AR_CODE32_ER);
 	load_gdtr(LIMIT_GDT, ADR_GDT);
 
-	/* IDT�̏����� */
+	/* IDT初始化 */
 	for (i = 0; i <= LIMIT_IDT / 8; i++) {
 		set_gatedesc(idt + i, 0, 0, 0);
 	}
 	load_idtr(LIMIT_IDT, ADR_IDT);
 
-	/* IDT�̐ݒ� */
-	set_gatedesc(idt + 0x21, (int) asm_inthandler21, 2 * 8, AR_INTGATE32);
-	set_gatedesc(idt + 0x27, (int) asm_inthandler27, 2 * 8, AR_INTGATE32);
-	set_gatedesc(idt + 0x2c, (int) asm_inthandler2c, 2 * 8, AR_INTGATE32);
+	/* 在IDT设置键盘、鼠标和兼容用中断 */
+	set_gatedesc(idt + 0x21, (int) asm_inthandler21, 2 * 8, AR_INTGATE32); //键盘中断
+	set_gatedesc(idt + 0x27, (int) asm_inthandler27, 2 * 8, AR_INTGATE32); //鼠标中断
+	set_gatedesc(idt + 0x2c, (int) asm_inthandler2c, 2 * 8, AR_INTGATE32); //部分机型开机兼容用中断
 
 	return;
 }
 
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar)
+/* 设置GDT表 */
 {
+	/* 移位操作 */
 	if (limit > 0xfffff) {
 		ar |= 0x8000; /* G_bit = 1 */
 		limit /= 0x1000;
 	}
+	/* 写入到GDT表指针中 */
 	sd->limit_low    = limit & 0xffff;
 	sd->base_low     = base & 0xffff;
 	sd->base_mid     = (base >> 16) & 0xff;
@@ -46,7 +55,9 @@ void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, i
 }
 
 void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar)
+/* 设置IDT表 */
 {
+	/* 写入到IDT表指针中 */
 	gd->offset_low   = offset & 0xffff;
 	gd->selector     = selector;
 	gd->dw_count     = (ar >> 8) & 0xff;

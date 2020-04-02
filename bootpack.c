@@ -5,7 +5,17 @@
 
 #include "bootpack.h"
 
-extern struct FIFO8 keyfifo, mousefifo;
+
+/*
+** 外部变量引用
+*/
+extern char hankaku[4096]; //引用字库
+extern struct FIFO8 keyfifo, mousefifo; //引用键盘和鼠标缓冲区
+
+
+/*
+** 键盘部分
+*/
 
 #define PORT_KEYDAT				0x0060
 #define PORT_KEYSTA				0x0064
@@ -14,43 +24,41 @@ extern struct FIFO8 keyfifo, mousefifo;
 #define KEYCMD_WRITE_MODE		0x60
 #define KBC_MODE				0x47
 
-struct MOUSE_DEC {
-	unsigned char buf[3], phase;
-	int x, y, btn;
-};
-
-void wait_KBC_sendready(void)
-{
+void wait_KBC_sendready(void){ //等待键盘响应
 	for (;;) {
-		if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
-			break;
+		if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) { //如果收到信号
+			break; //退出循环
 		}
 	}
 	return;
 }
 
-void init_keyboard(void)
-{
-	/* �L�[�{�[�h�R���g���[���̏����� */
-	wait_KBC_sendready();
+void init_keyboard(void){ //初始化键盘
+	wait_KBC_sendready(); //等待键盘响应
 	io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
 	wait_KBC_sendready();
 	io_out8(PORT_KEYDAT, KBC_MODE);
 	return;
 }
 
+struct MOUSE_DEC {
+	unsigned char buf[3], phase;
+	int x, y, btn;
+};
+
 #define KEYCMD_SENDTO_MOUSE		0xd4
 #define MOUSECMD_ENABLE			0xf4
 
 void enable_mouse(struct MOUSE_DEC *mdec)
 {
-	/* �}�E�X�L�� */
-	wait_KBC_sendready();
-	io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
-	wait_KBC_sendready();
-	io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
-	/* ���܂�������ACK(0xfa)�����M����Ă��� */
-	mdec->phase = 0; /* �}�E�X��0xfa��҂��Ă���i�K */
+	/* 设定鼠标 */
+	wait_KBC_sendready(); //等待键盘响应
+	io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE); //更改键盘PIC为鼠标发送模式
+	wait_KBC_sendready(); //等待键盘响应
+	io_out8(PORT_KEYDAT, MOUSECMD_ENABLE); //其用鼠标
+
+	/* 初始化鼠标结构体 */
+	mdec->phase = 0; //Decode结构体进入第0阶段（等待初始化）
 	return;
 }
 
@@ -132,7 +140,7 @@ void HariMain(void)
 	cs.x1 = binfo->screenWidth  - 8;
 	cs.y1 = binfo->screenHeight - 32;
 	cs.backgroundColor = COL8_008484;
-	extern char hankaku[4096];
+	
 	cs.fontLibrary = hankaku;
 	struct ConsoleStatus *csptr = console_init(binfo, (struct ConsoleStatus *)&cs);
 

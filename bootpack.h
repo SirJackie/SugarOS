@@ -3,7 +3,7 @@
 ** SugarOS 全局变量和声明
 */
 
-#include<stdio.h>
+#include <stdio.h>
 
 
 /*
@@ -22,6 +22,7 @@ struct BOOTINFO{
 /*
 ** naskfunc.nas
 */
+
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
@@ -40,6 +41,7 @@ void asm_inthandler2c(void);
 /*
 ** dsctbl.c
 */
+
 #define ADR_IDT			0x0026f800
 #define LIMIT_IDT		0x000007ff
 #define ADR_GDT			0x00270000
@@ -89,9 +91,11 @@ void inthandler21(int *esp);
 void inthandler27(int *esp);
 void inthandler2c(int *esp);
 
+
 /*
 ** graphic.c
 */
+
 #define COL8_000000		0
 #define COL8_FF0000		1
 #define COL8_00FF00		2
