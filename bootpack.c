@@ -14,9 +14,12 @@ extern struct FIFO8 keyfifo, mousefifo;
 #define KEYCMD_WRITE_MODE		0x60
 #define KBC_MODE				0x47
 
+struct MOUSE_DEC {
+	unsigned char buf[3], phase;
+};
+
 void wait_KBC_sendready(void)
 {
-	/* �L�[�{�[�h�R���g���[�����f�[�^���M�\�ɂȂ�̂�҂� */
 	for (;;) {
 		if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
 			break;
@@ -38,14 +41,46 @@ void init_keyboard(void)
 #define KEYCMD_SENDTO_MOUSE		0xd4
 #define MOUSECMD_ENABLE			0xf4
 
-void enable_mouse(void)
+void enable_mouse(struct MOUSE_DEC *mdec)
 {
 	/* �}�E�X�L�� */
 	wait_KBC_sendready();
 	io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
 	wait_KBC_sendready();
 	io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
-	return; /* ���܂�������ACK(0xfa)�����M����Ă��� */
+	/* ���܂�������ACK(0xfa)�����M����Ă��� */
+	mdec->phase = 0; /* �}�E�X��0xfa��҂��Ă���i�K */
+	return;
+}
+
+int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat)
+{
+	if (mdec->phase == 0) {
+		/* �}�E�X��0xfa��҂��Ă���i�K */
+		if (dat == 0xfa) {
+			mdec->phase = 1;
+		}
+		return 0;
+	}
+	if (mdec->phase == 1) {
+		/* �}�E�X��1�o�C�g�ڂ�҂��Ă���i�K */
+		mdec->buf[0] = dat;
+		mdec->phase = 2;
+		return 0;
+	}
+	if (mdec->phase == 2) {
+		/* �}�E�X��2�o�C�g�ڂ�҂��Ă���i�K */
+		mdec->buf[1] = dat;
+		mdec->phase = 3;
+		return 0;
+	}
+	if (mdec->phase == 3) {
+		/* �}�E�X��3�o�C�g�ڂ�҂��Ă���i�K */
+		mdec->buf[2] = dat;
+		mdec->phase = 1;
+		return 1;
+	}
+	return -1; /* �����ɗ��邱�Ƃ͂Ȃ��͂� */
 }
 
 
@@ -86,7 +121,7 @@ void HariMain(void)
 	//显示鼠标坐标
 	char buffer[40];
 	sprintf(buffer, "(%d, %d)", mx, my);
-	video_println(binfo, buffer, csptr);
+	// video_println(binfo, buffer, csptr);
 
 	io_out8(PIC0_IMR, 0xf9); /* PIC1�ƃL�[�{�[�h������(11111001) */
 	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */
@@ -102,7 +137,9 @@ void HariMain(void)
 
 	//初始化键盘和鼠标PIC
 	init_keyboard();
-	enable_mouse();
+	struct MOUSE_DEC mdec;
+	enable_mouse(&mdec);
+
 	
 	for(;;){
 		io_cli();
@@ -118,9 +155,12 @@ void HariMain(void)
 			if (fifo8_status(&mousefifo) != 0) {
 				i = fifo8_pop(&mousefifo);
 				io_sti();
-				sprintf(buffer, "Mouse: %02X", i);
-				video_fillRect8(binfo, 200, 8, 272, 24, COL8_008484);
-				video_putShadowString8(binfo, 200, 8, buffer);
+				if (mouse_decode(&mdec, i) != 0) {
+					/* 当鼠标的3个字节消息凑够 */
+					sprintf(buffer, "Mouse: %02X %02X %02X", mdec.buf[0], mdec.buf[1], mdec.buf[2]);
+					video_fillRect8(binfo, 150, 8, 300, 24, COL8_008484);
+					video_putShadowString8(binfo, 150, 8, buffer);
+				}
 			}
 		}
 	}
