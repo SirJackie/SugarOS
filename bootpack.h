@@ -111,10 +111,15 @@ void inthandler2c(int *esp);
 
 struct ConsoleStatus {
 	void (*callbackWhenFillRect)(struct BOOTINFO *binfo, int x0, int y0, int x1, int y1, unsigned char color);
-    void (*callbackWhenRefresh)(struct BOOTINFO *binfo, void (*callbackWhenFillRect)());
     void (*callbackWhenPutChar)(struct BOOTINFO *binfo, int x, int y, char color, char *fontLibrary);
+	int x0;
+	int y0;
+	int x1;
+	int y1;
     int console_cursorX;
     int console_cursorY;
+	int backgroundColor;
+	char* fontLibrary;
 };
 
 //调色板部分
@@ -133,8 +138,9 @@ void video_putString8(struct BOOTINFO *binfo, int x, int y, char color, unsigned
 void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char *stringPointer);
 
 //标准输入输出
-void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs);
-void video_println(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs);
+struct ConsoleStatus* console_init(struct BOOTINFO *binfo, struct ConsoleStatus *cs);
+void console_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs);
+void console_println(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs);
 
 //鼠标部分
 void video_init_mouse_cursor8(char *mouseBitmap, char backgroundColor);

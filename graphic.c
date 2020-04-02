@@ -132,64 +132,49 @@ void video_putShadowString8(struct BOOTINFO *binfo, int x, int y, unsigned char 
 /*
 ** 标准输入输出
 */
-void video_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
-	extern char hankaku[4096];
-	int xLimit = binfo->screenWidth  - 8;
-	int yLimit = binfo->screenHeight - 32;
-	if(cs->console_cursorX >= xLimit){
-		cs->console_cursorX =  8;
-		cs->console_cursorY += 16;
-	}
-	if(cs->console_cursorY >= yLimit){
-		cs->callbackWhenRefresh(binfo, cs->callbackWhenFillRect);
-		cs->console_cursorX = 8;
-		cs->console_cursorY = 8;
-	}
-	for(; *string != 0x00; string++){
-		cs->callbackWhenPutChar(binfo,  cs->console_cursorX+1, cs->console_cursorY+1, COL8_000000, hankaku + *string * 16);
-		cs->callbackWhenPutChar(binfo,  cs->console_cursorX,   cs->console_cursorY,   COL8_FFFFFF, hankaku + *string * 16);
-		cs->console_cursorX += 8;
-		if(cs->console_cursorX >= xLimit){
-			cs->console_cursorX =  8;
-			cs->console_cursorY += 16;
-		}
-		if(cs->console_cursorY >= yLimit){
-			cs->callbackWhenRefresh(binfo, cs->callbackWhenFillRect);
-			cs->console_cursorX = 8;
-			cs->console_cursorY = 8;
-		}
-	}
-	return;
+
+struct ConsoleStatus* console_init(struct BOOTINFO *binfo, struct ConsoleStatus *cs){
+	cs->console_cursorX = cs->x0;
+	cs->console_cursorY = cs->y0;
+	cs->callbackWhenFillRect(binfo, cs->x0, cs->y0,
+							 binfo->screenWidth - 8, binfo->screenHeight - 32,
+							 cs->backgroundColor);
+	return cs;
 }
 
-void video_println(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
-	extern char hankaku[4096];
-	int xLimit = binfo->screenWidth  - 8;
-	int yLimit = binfo->screenHeight - 32;
-	if(cs->console_cursorX >= xLimit){
-		cs->console_cursorX =  8;
+void console_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
+	if(cs->console_cursorX >= cs->x1){
+		cs->console_cursorX =  cs->x0;
 		cs->console_cursorY += 16;
 	}
-	if(cs->console_cursorY >= yLimit){
-		cs->callbackWhenRefresh(binfo, cs->callbackWhenFillRect);
-		cs->console_cursorX = 8;
-		cs->console_cursorY = 8;
+	if(cs->console_cursorY >= cs->y1){
+		cs->callbackWhenFillRect(binfo, cs->x0, cs->y0,
+									binfo->screenWidth - 8, binfo->screenHeight - 32,
+									cs->backgroundColor);
+		cs->console_cursorX = cs->x0;
+		cs->console_cursorY = cs->y0;
 	}
 	for(; *string != 0x00; string++){
-		cs->callbackWhenPutChar(binfo,  cs->console_cursorX+1, cs->console_cursorY+1, COL8_000000, hankaku + *string * 16);
-		cs->callbackWhenPutChar(binfo,  cs->console_cursorX,   cs->console_cursorY,   COL8_FFFFFF, hankaku + *string * 16);
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX+1, cs->console_cursorY+1, COL8_000000, cs->fontLibrary + *string * 16);
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX,   cs->console_cursorY,   COL8_FFFFFF, cs->fontLibrary + *string * 16);
 		cs->console_cursorX += 8;
-		if(cs->console_cursorX >= xLimit){
-			cs->console_cursorX =  8;
+		if(cs->console_cursorX >= cs->x1){
+			cs->console_cursorX =  cs->x0;
 			cs->console_cursorY += 16;
 		}
-		if(cs->console_cursorY >= yLimit){
-			cs->callbackWhenRefresh(binfo, cs->callbackWhenFillRect);
-			cs->console_cursorX = 8;
-			cs->console_cursorY = 8;
+		if(cs->console_cursorY >= cs->y1){
+			cs->callbackWhenFillRect(binfo, cs->x0, cs->y0,
+									 binfo->screenWidth - 8, binfo->screenHeight - 32,
+									 cs->backgroundColor);
+			cs->console_cursorX = cs->x0;
+			cs->console_cursorY = cs->y0;
 		}
 	}
-    cs->console_cursorX =  8;
+}
+
+void console_println(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
+	console_print(binfo, string, cs);
+    cs->console_cursorX =  cs->x0;
 	cs->console_cursorY += 16;
 	return;
 }

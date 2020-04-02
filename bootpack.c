@@ -6,6 +6,7 @@
 #include "bootpack.h"
 
 extern struct FIFO8 keyfifo, mousefifo;
+extern char hankaku[4096];
 
 #define PORT_KEYDAT				0x0060
 #define PORT_KEYSTA				0x0064
@@ -112,15 +113,6 @@ void HariMain(void)
 	struct BOOTINFO *binfo;
 	binfo = (struct BOOTINFO *) ADR_BOOTINFO;  //从asmhead.nas里读数据
 
-	//初始化标准输入输出
-	struct ConsoleStatus cs;
-	cs.callbackWhenFillRect = (void *)video_fillRect8;
-	cs.callbackWhenPutChar = (void *)video_putChar8;
-	cs.callbackWhenRefresh = (void *)video_refreshBackground;
-	cs.console_cursorX = 8;
-	cs.console_cursorY = 8;
-	struct ConsoleStatus *csptr = (struct ConsoleStatus *)&cs;
-
 	//初始化GDT和IDT
 	init_gdtidt();
 
@@ -132,6 +124,18 @@ void HariMain(void)
 	video_init_palette();
 	video_refreshBackground(binfo, (void *)video_fillRect8);
 
+	//初始化Console并绘制控制台背景
+	struct ConsoleStatus cs;
+	cs.callbackWhenFillRect = (void *)video_fillRect8;
+	cs.callbackWhenPutChar = (void *)video_putChar8;
+	cs.x0 = 8;
+	cs.y0 = 24;
+	cs.x1 = binfo->screenWidth  - 8;
+	cs.y1 = binfo->screenHeight - 32;
+	cs.backgroundColor = COL8_848484;
+	cs.fontLibrary = hankaku;
+	struct ConsoleStatus *csptr = console_init(binfo, (struct ConsoleStatus *)&cs);
+
 	//初始化鼠标图像,并绘制鼠标
 	char mcursor[256];
 	int mx = (binfo->screenWidth - 16) / 2;
@@ -142,7 +146,7 @@ void HariMain(void)
 	//显示鼠标坐标
 	char buffer[40];
 	sprintf(buffer, "(%d, %d)", mx, my);
-	// video_println(binfo, buffer, csptr);
+	video_putShadowString8(binfo, 8, 8, buffer);
 
 	io_out8(PIC0_IMR, 0xf9); /* PIC1�ƃL�[�{�[�h������(11111001) */
 	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */
@@ -171,7 +175,7 @@ void HariMain(void)
 				i = fifo8_pop(&keyfifo);
 				io_sti();
 				sprintf(buffer, "Keyboard: %02X", i);
-				video_println(binfo, buffer, csptr);
+				console_println(binfo, buffer, csptr);
 			}
 			if (fifo8_status(&mousefifo) != 0) {
 				i = fifo8_pop(&mousefifo);
@@ -188,7 +192,7 @@ void HariMain(void)
 					if ((mdec.btn & 0x04) != 0) {
 						buffer[2] = 'C';
 					}
-					video_fillRect8(binfo, 150, 8, 300, 24, COL8_008484);
+					video_fillRect8(binfo, 150, 8, 300, 23, COL8_008484);
 					video_putShadowString8(binfo, 150, 8, buffer);
 				}
 			}
