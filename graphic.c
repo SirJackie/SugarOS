@@ -86,22 +86,50 @@ void video_drawBitmap(struct BOOTINFO *binfo, int bitmapX, int bitmapY, int bitm
 void video_refreshBackground(struct BOOTINFO *binfo, void (*callbackWhenFillRect)())
 /* 刷新背景 */
 {
+	/* 画背景 */
 	callbackWhenFillRect(binfo,                       0,                        0, binfo->screenWidth -  1, binfo->screenHeight - 29, COL8_008484);
-	callbackWhenFillRect(binfo,                       0, binfo->screenHeight - 28, binfo->screenWidth -  1, binfo->screenHeight - 28, COL8_C6C6C6);
-	callbackWhenFillRect(binfo,                       0, binfo->screenHeight - 27, binfo->screenWidth -  1, binfo->screenHeight - 27, COL8_FFFFFF);
-	callbackWhenFillRect(binfo,                       0, binfo->screenHeight - 26, binfo->screenWidth -  1, binfo->screenHeight -  1, COL8_C6C6C6);
+	
+	/* 画菜单栏 */
+	callbackWhenFillRect(binfo,                       0, binfo->screenHeight - 28, binfo->screenWidth -  1, binfo->screenHeight - 28, COL8_C6C6C6); //画上阴影
+	callbackWhenFillRect(binfo,                       0, binfo->screenHeight - 27, binfo->screenWidth -  1, binfo->screenHeight - 27, COL8_FFFFFF); //画上边框
+	callbackWhenFillRect(binfo,                       0, binfo->screenHeight - 26, binfo->screenWidth -  1, binfo->screenHeight -  1, COL8_C6C6C6); //绘制主体
 
-	callbackWhenFillRect(binfo,                       3, binfo->screenHeight - 24,                      59, binfo->screenHeight - 24, COL8_FFFFFF);
-	callbackWhenFillRect(binfo,                       2, binfo->screenHeight - 24,                       2, binfo->screenHeight -  4, COL8_FFFFFF);
-	callbackWhenFillRect(binfo,                       3, binfo->screenHeight -  4,                      59, binfo->screenHeight -  4, COL8_848484);
-	callbackWhenFillRect(binfo,                      59, binfo->screenHeight - 23,                      59, binfo->screenHeight -  5, COL8_848484);
-	callbackWhenFillRect(binfo,                       2, binfo->screenHeight -  3,                      59, binfo->screenHeight -  3, COL8_000000);
-	callbackWhenFillRect(binfo,                      60, binfo->screenHeight - 24,                      60, binfo->screenHeight -  3, COL8_000000);
+	/* 画左按钮边框 */
+	callbackWhenFillRect(binfo,                       3, binfo->screenHeight - 24,                      59, binfo->screenHeight - 24, COL8_FFFFFF); //画上阴影
+	callbackWhenFillRect(binfo,                       2, binfo->screenHeight - 24,                       2, binfo->screenHeight -  4, COL8_FFFFFF); //画左阴影
+	callbackWhenFillRect(binfo,                       3, binfo->screenHeight -  4,                      59, binfo->screenHeight -  4, COL8_848484); //画下阴影
+	callbackWhenFillRect(binfo,                      59, binfo->screenHeight - 23,                      59, binfo->screenHeight -  5, COL8_848484); //画右阴影
+	callbackWhenFillRect(binfo,                       2, binfo->screenHeight -  3,                      59, binfo->screenHeight -  3, COL8_000000); //画下阴影(黑)
+	callbackWhenFillRect(binfo,                      60, binfo->screenHeight - 24,                      60, binfo->screenHeight -  3, COL8_000000); //画右阴影(黑)
 
-	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight - 24, binfo->screenWidth -  4, binfo->screenHeight - 24, COL8_848484);
-	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight - 23, binfo->screenWidth - 47, binfo->screenHeight -  4, COL8_848484);
-	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight -  3, binfo->screenWidth -  4, binfo->screenHeight -  3, COL8_FFFFFF);
-	callbackWhenFillRect(binfo, binfo->screenWidth -  3, binfo->screenHeight - 24, binfo->screenWidth -  3, binfo->screenHeight -  3, COL8_FFFFFF);
+	/* 画右按钮边框 */
+	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight - 24, binfo->screenWidth -  4, binfo->screenHeight - 24, COL8_848484); //画上阴影
+	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight - 23, binfo->screenWidth - 47, binfo->screenHeight -  4, COL8_848484); //画左阴影
+	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight -  3, binfo->screenWidth -  4, binfo->screenHeight -  3, COL8_FFFFFF); //画下阴影
+	callbackWhenFillRect(binfo, binfo->screenWidth -  3, binfo->screenHeight - 24, binfo->screenWidth -  3, binfo->screenHeight -  3, COL8_FFFFFF); //画右阴影
+}
+
+void video_refreshMenuBar(struct BOOTINFO *binfo, void (*callbackWhenFillRect)())
+/* 刷新菜单栏 */
+{
+	/* 画菜单栏 */
+	callbackWhenFillRect(binfo,                       0, binfo->screenHeight - 28, binfo->screenWidth -  1, binfo->screenHeight - 28, COL8_C6C6C6); //画上阴影
+	callbackWhenFillRect(binfo,                       0, binfo->screenHeight - 27, binfo->screenWidth -  1, binfo->screenHeight - 27, COL8_FFFFFF); //画上边框
+	callbackWhenFillRect(binfo,                       0, binfo->screenHeight - 26, binfo->screenWidth -  1, binfo->screenHeight -  1, COL8_C6C6C6); //绘制主体
+
+	// /* 画左按钮边框 */
+	callbackWhenFillRect(binfo,                       3, binfo->screenHeight - 24,                      59, binfo->screenHeight - 24, COL8_FFFFFF); //画上阴影
+	callbackWhenFillRect(binfo,                       2, binfo->screenHeight - 24,                       2, binfo->screenHeight -  4, COL8_FFFFFF); //画左阴影
+	callbackWhenFillRect(binfo,                       3, binfo->screenHeight -  4,                      59, binfo->screenHeight -  4, COL8_848484); //画下阴影
+	callbackWhenFillRect(binfo,                      59, binfo->screenHeight - 23,                      59, binfo->screenHeight -  5, COL8_848484); //画右阴影
+	callbackWhenFillRect(binfo,                       2, binfo->screenHeight -  3,                      59, binfo->screenHeight -  3, COL8_000000); //画下阴影(黑)
+	callbackWhenFillRect(binfo,                      60, binfo->screenHeight - 24,                      60, binfo->screenHeight -  3, COL8_000000); //画右阴影(黑)
+
+	// /* 画右按钮边框 */
+	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight - 24, binfo->screenWidth -  4, binfo->screenHeight - 24, COL8_848484); //画上阴影
+	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight - 23, binfo->screenWidth - 47, binfo->screenHeight -  4, COL8_848484); //画左阴影
+	callbackWhenFillRect(binfo, binfo->screenWidth - 47, binfo->screenHeight -  3, binfo->screenWidth -  4, binfo->screenHeight -  3, COL8_FFFFFF); //画下阴影
+	callbackWhenFillRect(binfo, binfo->screenWidth -  3, binfo->screenHeight - 24, binfo->screenWidth -  3, binfo->screenHeight -  3, COL8_FFFFFF); //画右阴影
 }
 
 

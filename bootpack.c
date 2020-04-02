@@ -150,9 +150,12 @@ void HariMain(void)
 	cs.y0 = 24;
 	cs.x1 = binfo->screenWidth  - 8;
 	cs.y1 = binfo->screenHeight - 32;
+	cs.console_cursorX = 8;
+	cs.console_cursorY = 24;
 	cs.backgroundColor = COL8_008484;
 	cs.fontLibrary = hankaku;
-	struct ConsoleStatus *csptr = console_init(binfo, (struct ConsoleStatus *)&cs);
+	// struct ConsoleStatus *csptr = console_init(binfo, (struct ConsoleStatus *)&cs);
+	struct ConsoleStatus *csptr = (struct ConsoleStatus *)&cs;
 
 	//初始化鼠标图像,并绘制鼠标
 	char mcursor[256];
@@ -218,11 +221,17 @@ void HariMain(void)
 					video_fillRect8(binfo, 150, 8, 300, 23, COL8_008484);
 					video_putShadowString8(binfo, 150, 8, buffer);
 
-					//擦除鼠标
+					//擦除鼠标并重绘菜单栏
 					video_fillRect8(binfo, mx, my, mx+15, my+15, COL8_008484);
+					if(my >= binfo->screenHeight - (28+16)){
+						/* 上次鼠标在菜单栏运动 */
+						video_refreshMenuBar(binfo, video_fillRect8); //还要重绘菜单栏
+					}
+
 					//加入移动量
 					mx += mdec.x;
 					my += mdec.y;
+
 					//边界处理
 					if(mx <= 0){
 						mx = 0;
@@ -236,10 +245,12 @@ void HariMain(void)
 					else if(my >= binfo->screenHeight - 16){
 						my = binfo->screenHeight - 16;
 					}
+
 					//显示鼠标坐标
 					sprintf(buffer, "(%3d, %3d)", mx, my);
 					video_fillRect8(binfo, 8, 8, 88, 24, COL8_008484);
 					video_putShadowString8(binfo, 8, 8, buffer);
+
 					//绘制鼠标
 					video_drawBitmap(binfo, mx, my, 16, 16, mcursor);
 				}

@@ -134,7 +134,7 @@ void video_init_palette(void);
 void video_fillRect8(struct BOOTINFO *binfo, int x0, int y0, int x1, int y1, unsigned char color);
 void video_drawBitmap(struct BOOTINFO *binfo, int bitmapX, int bitmapY, int bitmapWidth, int bitmapHeight, char *bitmap);
 void video_refreshBackground(struct BOOTINFO *binfo, void (*callbackWhenFillRect)());
-void video_refreshBackground(struct BOOTINFO *binfo, void (*callbackWhenFillRect)());
+void video_refreshMenuBar(struct BOOTINFO *binfo, void (*callbackWhenFillRect)());
 
 //文字部分
 void video_putChar8(struct BOOTINFO *binfo, int x, int y, char color, char *fontLibrary);
