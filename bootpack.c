@@ -143,15 +143,12 @@ void HariMain(void)
 	video_init_mouse_cursor8(mcursor, COL8_008484);
 	video_drawBitmap(binfo, mx, my, 16, 16, mcursor);
 
-	//显示鼠标坐标
-	char buffer[40];
-	sprintf(buffer, "(%d, %d)", mx, my);
-	video_putShadowString8(binfo, 8, 8, buffer);
-
+	//PIC设定
 	io_out8(PIC0_IMR, 0xf9); /* PIC1�ƃL�[�{�[�h������(11111001) */
 	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */
 
 	//临时变量
+	char buffer[40];
 	unsigned char i;
 
 	//初始化键盘和鼠标FIFO缓冲区
@@ -215,6 +212,11 @@ void HariMain(void)
 					}
 					//绘制鼠标
 					video_drawBitmap(binfo, mx, my, 16, 16, mcursor);
+					//显示鼠标坐标
+					sprintf(buffer, "(%3d, %3d)", mx, my);
+					video_fillRect8(binfo, 8, 8, 88, 24, COL8_008484);
+					video_putShadowString8(binfo, 8, 8, buffer);
+					
 				}
 			}
 		}
