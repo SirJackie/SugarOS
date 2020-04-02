@@ -9,60 +9,71 @@
 /*
 ** 外部变量引用
 */
+
 extern char hankaku[4096]; //引用字库
-extern struct FIFO8 keyfifo, mousefifo; //引用键盘和鼠标缓冲区
+extern struct FIFO8 keyfifo, mousefifo; //从int.c中引用键盘和鼠标缓冲区
 
 
 /*
-** 键盘部分
+** 键盘和鼠标控制电路设定
 */
 
-#define PORT_KEYDAT				0x0060
-#define PORT_KEYSTA				0x0064
-#define PORT_KEYCMD				0x0064
-#define KEYSTA_SEND_NOTREADY	0x02
-#define KEYCMD_WRITE_MODE		0x60
-#define KBC_MODE				0x47
+#define PORT_KEYSTA				0x0064 //键盘设备地址
+#define PORT_KEYCMD				0x0064 //键盘写指令设备地址
+#define PORT_KEYDAT				0x0060 //键盘写数据设备地址
+#define KEYSTA_SEND_NOTREADY	0x02   //一个倒数第二位是1的二进制,用于检测KBC的响应
+#define KEYCMD_WRITE_MODE		0x60   //键盘控制电路的模式设定指令
+#define KBC_MODE				0x47   //使用鼠标模式指令
 
-void wait_KBC_sendready(void){ //等待键盘响应
+void wait_KBC_sendready(void)
+/* 等待键盘控制电路(Keyboard Controller,KBC)响应 */
+{
 	for (;;) {
-		if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) { //如果收到信号
+		/* 检测从键盘设备读取的数据的倒数第二位是不是0 */
+		if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0)
+		{
+			/* 如果是0,就已经收到键盘的响应信号了 */
 			break; //退出循环
 		}
 	}
 	return;
 }
 
-void init_keyboard(void){ //初始化键盘
-	wait_KBC_sendready(); //等待键盘响应
-	io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
-	wait_KBC_sendready();
-	io_out8(PORT_KEYDAT, KBC_MODE);
+void init_keyboard(void)
+/* 初始化键盘控制电路 */
+{
+	wait_KBC_sendready();                    //等待键盘响应
+	io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE); //往键盘写模式设定指令
+	wait_KBC_sendready();                    //等待键盘响应
+	io_out8(PORT_KEYDAT, KBC_MODE);          //往键盘写鼠标模式指令
 	return;
 }
 
-struct MOUSE_DEC {
+struct MOUSE_DEC
+/* 鼠标解码结构体 */
+{
 	unsigned char buf[3], phase;
 	int x, y, btn;
 };
 
-#define KEYCMD_SENDTO_MOUSE		0xd4
-#define MOUSECMD_ENABLE			0xf4
+#define KEYCMD_SENDTO_MOUSE		0xd4 //告诉KBC下一个指令发给鼠标的指令
+#define MOUSECMD_ENABLE			0xf4 //激活鼠标指令
 
 void enable_mouse(struct MOUSE_DEC *mdec)
+/* 激活鼠标 */
 {
-	/* 设定鼠标 */
-	wait_KBC_sendready(); //等待键盘响应
-	io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE); //更改键盘PIC为鼠标发送模式
-	wait_KBC_sendready(); //等待键盘响应
-	io_out8(PORT_KEYDAT, MOUSECMD_ENABLE); //其用鼠标
+	wait_KBC_sendready();                      //等待键盘响应
+	io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE); //告诉KBC下一个指令发给鼠标
+	wait_KBC_sendready();                      //等待键盘响应
+	io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);     //激活鼠标
 
 	/* 初始化鼠标结构体 */
-	mdec->phase = 0; //Decode结构体进入第0阶段（等待初始化）
+	mdec->phase = 0; //鼠标解码结构体进入第0阶段（等待初始化）
 	return;
 }
 
 int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat)
+/* 鼠标解码部分 */
 {
 	if (mdec->phase == 0) {
 		/* 接收初始化数据 */
@@ -74,7 +85,7 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat)
 	if (mdec->phase == 1) {
 		/* 校验鼠标是否接触良好 */
 		if ((dat & 0xc8) == 0x08) {
-			/* 接收第1个字节 */
+			/* 如果良好,接收第1个字节 */
 			mdec->buf[0] = dat;
 			mdec->phase = 2;
 		}
@@ -98,7 +109,7 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat)
 		//Y轴移动情况取第3个字节
 		mdec->y = mdec->buf[2];
 
-		//将第1个字节高5位于XY轴移动情况合并
+		//将第1个字节高5位与XY轴移动情况合并
 		if ((mdec->buf[0] & 0x10) != 0) {
 			mdec->x |= 0xffffff00;
 		}
@@ -106,10 +117,10 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat)
 			mdec->y |= 0xffffff00;
 		}
 
-		mdec->y = - mdec->y; /* �}�E�X�ł�y�����̕�������ʂƔ��� */
+		mdec->y = - mdec->y; //反转Y轴
 		return 1;
 	}
-	return -1; /* �����ɗ��邱�Ƃ͂Ȃ��͂� */
+	return -1; //如果数据不能处理,就返回错误
 }
 
 
@@ -140,7 +151,6 @@ void HariMain(void)
 	cs.x1 = binfo->screenWidth  - 8;
 	cs.y1 = binfo->screenHeight - 32;
 	cs.backgroundColor = COL8_008484;
-	
 	cs.fontLibrary = hankaku;
 	struct ConsoleStatus *csptr = console_init(binfo, (struct ConsoleStatus *)&cs);
 
@@ -155,7 +165,7 @@ void HariMain(void)
 	io_out8(PIC0_IMR, 0xf9); /* PIC1�ƃL�[�{�[�h������(11111001) */
 	io_out8(PIC1_IMR, 0xef); /* �}�E�X������(11101111) */
 
-	//临时变量
+	//创建字符缓冲区
 	char buffer[40];
 	unsigned char i;
 
@@ -170,23 +180,31 @@ void HariMain(void)
 	struct MOUSE_DEC mdec;
 	enable_mouse(&mdec);
 
-	
+	/* 开始响应 */
 	for(;;){
-		io_cli();
-		if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) == 0) {
-			io_stihlt();
+		io_cli(); //禁止中断
+		if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) == 0)
+		{
+			/* 如果鼠标和键盘没有动作 */
+			io_stihlt(); //恢复中断并紧接着休眠(STI和HLT的汇编必须编译在一起!)
 		} else {
+			/* 如果有动作 */
 			if (fifo8_status(&keyfifo) != 0) {
-				i = fifo8_pop(&keyfifo);
-				io_sti();
-				sprintf(buffer, "Keyboard: %02X", i);
+				/* 如果是键盘的动作 */
+				i = fifo8_pop(&keyfifo);    //取出动作
+				io_sti();                   //恢复中断
+				/* 打印键盘动作 */
+				sprintf(buffer, "Keyboard: %02X", i); 
 				console_println(binfo, buffer, csptr);
 			}
 			if (fifo8_status(&mousefifo) != 0) {
-				i = fifo8_pop(&mousefifo);
-				io_sti();
+				/* 如果是鼠标的动作 */
+				i = fifo8_pop(&mousefifo);  //取出动作
+				io_sti();                   //恢复中断
 				if (mouse_decode(&mdec, i) != 0) {
 					/* 当鼠标的3个字节消息凑够 */
+					
+					/* 打印键盘动作 */
 					sprintf(buffer, "[lcr %4d %4d]", mdec.x, mdec.y);
 					if ((mdec.btn & 0x01) != 0) {
 						buffer[1] = 'L';

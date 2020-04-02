@@ -6,6 +6,10 @@
 #include "bootpack.h"
 
 
+/*
+** 初始化部分
+*/
+
 void init_pic(void)
 /* PIC初始化部分 */
 {
