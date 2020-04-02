@@ -1,4 +1,4 @@
-OSASK‚Ì”¼ŠpƒtƒHƒ“ƒg‚ð—¬—p
+SugarOS å­—åº“ - hankakuå­—ä½“
 
 char 0x00
 ........

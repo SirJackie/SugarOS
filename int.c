@@ -7,23 +7,23 @@
 
 
 void init_pic(void)
-/* PIC�̏����� */
+/* PIC初始化部分 */
 {
-	io_out8(PIC0_IMR,  0xff  ); /* �S�Ă̊��荞�݂��󂯕t���Ȃ� */
-	io_out8(PIC1_IMR,  0xff  ); /* �S�Ă̊��荞�݂��󂯕t���Ȃ� */
+	io_out8(PIC0_IMR,  0xff  ); //禁止所有中断
+	io_out8(PIC1_IMR,  0xff  ); //禁止所有中断
 
-	io_out8(PIC0_ICW1, 0x11  ); /* �G�b�W�g���K���[�h */
-	io_out8(PIC0_ICW2, 0x20  ); /* IRQ0-7�́AINT20-27�Ŏ󂯂� */
-	io_out8(PIC0_ICW3, 1 << 2); /* PIC1��IRQ2�ɂĐڑ� */
-	io_out8(PIC0_ICW4, 0x01  ); /* �m���o�b�t�@���[�h */
+	io_out8(PIC0_ICW1, 0x11  ); //边沿触发模式(Edge Trigger Mode)
+	io_out8(PIC0_ICW2, 0x20  ); //IRQ0-7由INT20-27接收
+	io_out8(PIC0_ICW3, 1 << 2); //PIC1由IRQ2连接
+	io_out8(PIC0_ICW4, 0x01  ); //无缓冲区模式
 
-	io_out8(PIC1_ICW1, 0x11  ); /* �G�b�W�g���K���[�h */
-	io_out8(PIC1_ICW2, 0x28  ); /* IRQ8-15�́AINT28-2f�Ŏ󂯂� */
-	io_out8(PIC1_ICW3, 2     ); /* PIC1��IRQ2�ɂĐڑ� */
-	io_out8(PIC1_ICW4, 0x01  ); /* �m���o�b�t�@���[�h */
+	io_out8(PIC1_ICW1, 0x11  ); //边沿触发模式(Edge Trigger Mode)
+	io_out8(PIC1_ICW2, 0x28  ); //IRQ8-15由INT28-2f接收
+	io_out8(PIC1_ICW3, 2     ); //PIC1由IRQ2连接
+	io_out8(PIC1_ICW4, 0x01  ); //无缓冲区模式
 
-	io_out8(PIC0_IMR,  0xfb  ); /* 11111011 PIC1�ȊO�͑S�ċ֎~ */
-	io_out8(PIC1_IMR,  0xff  ); /* 11111111 �S�Ă̊��荞�݂��󂯕t���Ȃ� */
+	io_out8(PIC0_IMR,  0xfb  ); //11111011 PIC1以外全部禁止
+	io_out8(PIC1_IMR,  0xff  ); //11111111 禁止所有中断
 
 	return;
 }
@@ -37,11 +37,12 @@ struct FIFO8 keyfifo;
 #define PORT_KEYDAT		0x0060
 
 void inthandler21(int *esp)
+/* 键盘中断处理句柄 */
 {
 	unsigned char data;
-	io_out8(PIC0_OCW2, 0x61);	/* 通知PIC IRQ-01已经受理完毕 */
-	data = io_in8(PORT_KEYDAT);
-	fifo8_push(&keyfifo, data);
+	io_out8(PIC0_OCW2, 0x61);	  //通知PIC IRQ-01已经受理完毕
+	data = io_in8(PORT_KEYDAT);   //读数据
+	fifo8_push(&keyfifo, data);   //压入到键盘缓冲区
 	return;
 }
 
@@ -54,24 +55,20 @@ void inthandler21(int *esp)
 struct FIFO8 mousefifo;
 
 void inthandler2c(int *esp)
-/* PS/2�}�E�X����̊��荞�� */
+/* 鼠标中断处理句柄 */
 {
 	unsigned char data;
-	io_out8(PIC1_OCW2, 0x64);	/* 通知从PIC IRQ-12已经受理完毕 */
-	io_out8(PIC0_OCW2, 0x62);	/* 通知主PIC IRQ-02已经受理完毕 */
-	data = io_in8(PORT_KEYDAT);
-	fifo8_push(&mousefifo, data);
+	io_out8(PIC1_OCW2, 0x64);	  //通知从PIC IRQ-12已经受理完毕
+	io_out8(PIC0_OCW2, 0x62);	  //通知主PIC IRQ-02已经受理完毕
+	data = io_in8(PORT_KEYDAT);   //读数据
+	fifo8_push(&mousefifo, data); //压入到鼠标缓冲区
 	return;
 }
 
 void inthandler27(int *esp)
-/* PIC0����̕s���S���荞�ݑ΍� */
-/* Athlon64X2�@�Ȃǂł̓`�b�v�Z�b�g�̓s���ɂ��PIC�̏��������ɂ��̊��荞�݂�1�x���������� */
-/* ���̊��荞�ݏ����֐��́A���̊��荞�݂ɑ΂��ĉ������Ȃ��ł��߂��� */
-/* �Ȃ��������Ȃ��Ă����́H
-	��  ���̊��荞�݂�PIC���������̓d�C�I�ȃm�C�Y�ɂ���Ĕ����������̂Ȃ̂ŁA
-		�܂��߂ɉ����������Ă��K�v���Ȃ��B									*/
+/* 部分机型初始化中断兼容程序 */
+/* 部分机型在完成PIC初始化后,会产生IRQ-07中断,如果不予受理会导致启动失败 */
 {
-	io_out8(PIC0_OCW2, 0x67); /* IRQ-07��t������PIC�ɒʒm(7-1�Q��) */
+	io_out8(PIC0_OCW2, 0x67);     //通知从PIC IRQ-07已经受理完毕
 	return;
 }
