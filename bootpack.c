@@ -6,7 +6,6 @@
 #include "bootpack.h"
 
 extern struct FIFO8 keyfifo, mousefifo;
-extern char hankaku[4096];
 
 #define PORT_KEYDAT				0x0060
 #define PORT_KEYSTA				0x0064
@@ -133,6 +132,7 @@ void HariMain(void)
 	cs.x1 = binfo->screenWidth  - 8;
 	cs.y1 = binfo->screenHeight - 32;
 	cs.backgroundColor = COL8_008484;
+	extern char hankaku[4096];
 	cs.fontLibrary = hankaku;
 	struct ConsoleStatus *csptr = console_init(binfo, (struct ConsoleStatus *)&cs);
 
@@ -154,7 +154,7 @@ void HariMain(void)
 	//初始化键盘和鼠标FIFO缓冲区
 	unsigned char keybuf[32];
 	fifo8_init(&keyfifo, 32, keybuf);
-	unsigned char mousebuf[32];
+	unsigned char mousebuf[128];
 	fifo8_init(&mousefifo, 128, mousebuf);
 
 	//初始化键盘和鼠标PIC
