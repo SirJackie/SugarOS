@@ -210,13 +210,12 @@ void HariMain(void)
 					else if(my >= binfo->screenHeight - 16){
 						my = binfo->screenHeight - 16;
 					}
-					//绘制鼠标
-					video_drawBitmap(binfo, mx, my, 16, 16, mcursor);
 					//显示鼠标坐标
 					sprintf(buffer, "(%3d, %3d)", mx, my);
 					video_fillRect8(binfo, 8, 8, 88, 24, COL8_008484);
 					video_putShadowString8(binfo, 8, 8, buffer);
-					
+					//绘制鼠标
+					video_drawBitmap(binfo, mx, my, 16, 16, mcursor);
 				}
 			}
 		}
