@@ -170,40 +170,53 @@ struct ConsoleStatus* console_init(struct BOOTINFO *binfo, struct ConsoleStatus 
 	return cs;
 }
 
-void console_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
+void console_print(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs)
+/* 输出标准字符串 */
+{
+	/* 如果到达屏幕右边边界 */
 	if(cs->console_cursorX >= cs->x1){
+		/* 换行 */
 		cs->console_cursorX =  cs->x0;
 		cs->console_cursorY += 16;
 	}
+	/* 如果到达屏幕下边边界 */
 	if(cs->console_cursorY >= cs->y1){
+		/* 清屏并归位光标 */
 		cs->callbackWhenFillRect(binfo, cs->x0, cs->y0,
 									binfo->screenWidth - 8, binfo->screenHeight - 32,
 									cs->backgroundColor);
 		cs->console_cursorX = cs->x0;
 		cs->console_cursorY = cs->y0;
 	}
+	/* 不然就画阴影字符串 */
 	for(; *string != 0x00; string++){
-		cs->callbackWhenPutChar(binfo,  cs->console_cursorX+1, cs->console_cursorY+1, COL8_000000, cs->fontLibrary + *string * 16);
-		cs->callbackWhenPutChar(binfo,  cs->console_cursorX,   cs->console_cursorY,   COL8_FFFFFF, cs->fontLibrary + *string * 16);
-		cs->console_cursorX += 8;
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX+1, cs->console_cursorY+1, COL8_000000, cs->fontLibrary + *string * 16); //画一遍黑色阴影
+		cs->callbackWhenPutChar(binfo,  cs->console_cursorX,   cs->console_cursorY,   COL8_FFFFFF, cs->fontLibrary + *string * 16); //画一遍白色字符
+		cs->console_cursorX += 8; //右移光标
+		/* 如果到达屏幕右边边界 */
 		if(cs->console_cursorX >= cs->x1){
+			/* 换行 */
 			cs->console_cursorX =  cs->x0;
 			cs->console_cursorY += 16;
 		}
+		/* 如果到达屏幕下边边界 */
 		if(cs->console_cursorY >= cs->y1){
+			/* 清屏并归位光标 */
 			cs->callbackWhenFillRect(binfo, cs->x0, cs->y0,
-									 binfo->screenWidth - 8, binfo->screenHeight - 32,
-									 cs->backgroundColor);
+										binfo->screenWidth - 8, binfo->screenHeight - 32,
+										cs->backgroundColor);
 			cs->console_cursorX = cs->x0;
 			cs->console_cursorY = cs->y0;
 		}
 	}
 }
 
-void console_println(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs){
-	console_print(binfo, string, cs);
-    cs->console_cursorX =  cs->x0;
-	cs->console_cursorY += 16;
+void console_println(struct BOOTINFO *binfo, unsigned char *string, struct ConsoleStatus *cs)
+/* 输出标准字符串并换行 */
+{
+	console_print(binfo, string, cs); //输出标准字符串
+    cs->console_cursorX =  cs->x0;    //X轴换行
+	cs->console_cursorY += 16;        //Y轴换行
 	return;
 }
 
@@ -212,7 +225,10 @@ void console_println(struct BOOTINFO *binfo, unsigned char *string, struct Conso
 ** 鼠标部分
 */
 
-void video_init_mouse_cursor8(char *mouseBitmap, char backgroundColor){
+void video_init_mouse_cursor8(char *mouseBitmap, char backgroundColor)
+/* 初始化鼠标位图 */
+{
+	/* 定义位图字符串 */
 	static char cursor[16][16] = {
 		"**************..",
 		"*OOOOOOOOOOO*...",
@@ -233,6 +249,7 @@ void video_init_mouse_cursor8(char *mouseBitmap, char backgroundColor){
 	};
 	int x, y;
 
+	/* 把字符串转成位图 */
 	for (y = 0; y < 16; y++) {
 		for (x = 0; x < 16; x++) {
 			if (cursor[y][x] == '*') {
