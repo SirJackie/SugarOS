@@ -16,6 +16,7 @@ extern struct FIFO8 keyfifo, mousefifo;
 
 struct MOUSE_DEC {
 	unsigned char buf[3], phase;
+	int x, y, btn;
 };
 
 void wait_KBC_sendready(void)
@@ -56,28 +57,48 @@ void enable_mouse(struct MOUSE_DEC *mdec)
 int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat)
 {
 	if (mdec->phase == 0) {
-		/* �}�E�X��0xfa��҂��Ă���i�K */
+		/* 接收初始化数据 */
 		if (dat == 0xfa) {
 			mdec->phase = 1;
 		}
 		return 0;
 	}
 	if (mdec->phase == 1) {
-		/* �}�E�X��1�o�C�g�ڂ�҂��Ă���i�K */
-		mdec->buf[0] = dat;
-		mdec->phase = 2;
+		/* 校验鼠标是否接触良好 */
+		if ((dat & 0xc8) == 0x08) {
+			/* 接收第1个字节 */
+			mdec->buf[0] = dat;
+			mdec->phase = 2;
+		}
 		return 0;
 	}
 	if (mdec->phase == 2) {
-		/* �}�E�X��2�o�C�g�ڂ�҂��Ă���i�K */
+		/* 接收第2个字节 */
 		mdec->buf[1] = dat;
 		mdec->phase = 3;
 		return 0;
 	}
 	if (mdec->phase == 3) {
-		/* �}�E�X��3�o�C�g�ڂ�҂��Ă���i�K */
+		/* 接收第3个字节 */
 		mdec->buf[2] = dat;
 		mdec->phase = 1;
+
+		//鼠标点击情况取第1个字节的低3位
+		mdec->btn = mdec->buf[0] & 0x07;
+		//X轴移动情况取第2个字节
+		mdec->x = mdec->buf[1];
+		//Y轴移动情况取第3个字节
+		mdec->y = mdec->buf[2];
+
+		//将第1个字节高5位于XY轴移动情况合并
+		if ((mdec->buf[0] & 0x10) != 0) {
+			mdec->x |= 0xffffff00;
+		}
+		if ((mdec->buf[0] & 0x20) != 0) {
+			mdec->y |= 0xffffff00;
+		}
+
+		mdec->y = - mdec->y; /* �}�E�X�ł�y�����̕�������ʂƔ��� */
 		return 1;
 	}
 	return -1; /* �����ɗ��邱�Ƃ͂Ȃ��͂� */
@@ -157,7 +178,16 @@ void HariMain(void)
 				io_sti();
 				if (mouse_decode(&mdec, i) != 0) {
 					/* 当鼠标的3个字节消息凑够 */
-					sprintf(buffer, "Mouse: %02X %02X %02X", mdec.buf[0], mdec.buf[1], mdec.buf[2]);
+					sprintf(buffer, "[lcr %4d %4d]", mdec.x, mdec.y);
+					if ((mdec.btn & 0x01) != 0) {
+						buffer[1] = 'L';
+					}
+					if ((mdec.btn & 0x02) != 0) {
+						buffer[3] = 'R';
+					}
+					if ((mdec.btn & 0x04) != 0) {
+						buffer[2] = 'C';
+					}
 					video_fillRect8(binfo, 150, 8, 300, 24, COL8_008484);
 					video_putShadowString8(binfo, 150, 8, buffer);
 				}
