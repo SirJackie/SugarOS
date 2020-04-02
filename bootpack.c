@@ -132,7 +132,7 @@ void HariMain(void)
 	cs.y0 = 24;
 	cs.x1 = binfo->screenWidth  - 8;
 	cs.y1 = binfo->screenHeight - 32;
-	cs.backgroundColor = COL8_848484;
+	cs.backgroundColor = COL8_008484;
 	cs.fontLibrary = hankaku;
 	struct ConsoleStatus *csptr = console_init(binfo, (struct ConsoleStatus *)&cs);
 
@@ -194,6 +194,27 @@ void HariMain(void)
 					}
 					video_fillRect8(binfo, 150, 8, 300, 23, COL8_008484);
 					video_putShadowString8(binfo, 150, 8, buffer);
+
+					//擦除鼠标
+					video_fillRect8(binfo, mx, my, mx+15, my+15, COL8_008484);
+					//加入移动量
+					mx += mdec.x;
+					my += mdec.y;
+					//边界处理
+					if(mx <= 0){
+						mx = 0;
+					}
+					else if(mx >= binfo->screenWidth - 16){
+						mx = binfo->screenWidth - 16;
+					}
+					if(my <= 0){
+						my = 0;
+					}
+					else if(my >= binfo->screenHeight - 16){
+						my = binfo->screenHeight - 16;
+					}
+					//绘制鼠标
+					video_drawBitmap(binfo, mx, my, 16, 16, mcursor);
 				}
 			}
 		}
