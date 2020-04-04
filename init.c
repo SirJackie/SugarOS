@@ -32,43 +32,6 @@ void init_pic(void)
 	return;
 }
 
-
-/*
-** 键盘中断部分
-*/
-
-struct FIFO8 keyfifo;
-#define PORT_KEYDAT		0x0060
-
-void inthandler21(int *esp)
-/* 键盘中断处理句柄 */
-{
-	unsigned char data;
-	io_out8(PIC0_OCW2, 0x61);	  //通知PIC IRQ-01已经受理完毕
-	data = io_in8(PORT_KEYDAT);   //读数据
-	fifo8_push(&keyfifo, data);   //压入到键盘缓冲区
-	return;
-}
-
-
-
-/*
-** 鼠标中断部分
-*/
-
-struct FIFO8 mousefifo;
-
-void inthandler2c(int *esp)
-/* 鼠标中断处理句柄 */
-{
-	unsigned char data;
-	io_out8(PIC1_OCW2, 0x64);	  //通知从PIC IRQ-12已经受理完毕
-	io_out8(PIC0_OCW2, 0x62);	  //通知主PIC IRQ-02已经受理完毕
-	data = io_in8(PORT_KEYDAT);   //读数据
-	fifo8_push(&mousefifo, data); //压入到鼠标缓冲区
-	return;
-}
-
 void inthandler27(int *esp)
 /* 部分机型初始化中断兼容程序 */
 /* 部分机型在完成PIC初始化后,会产生IRQ-07中断,如果不予受理会导致启动失败 */

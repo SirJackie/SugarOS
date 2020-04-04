@@ -70,7 +70,7 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 
 
 /*
-** int.c
+** init.c
 */
 
 #define PIC0_ICW1		0x0020
@@ -87,10 +87,42 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define PIC1_ICW4		0x00a1
 
 void init_pic(void);
-void inthandler21(int *esp);
 void inthandler27(int *esp);
-void inthandler2c(int *esp);
 
+
+/*
+** keyboard.c
+*/
+
+#define PORT_KEYSTA				0x0064 //键盘设备地址
+#define PORT_KEYCMD				0x0064 //键盘写指令设备地址
+#define PORT_KEYDAT				0x0060 //键盘写数据设备地址
+#define KEYSTA_SEND_NOTREADY	0x02   //一个倒数第二位是1的二进制,用于检测KBC的响应
+#define KEYCMD_WRITE_MODE		0x60   //键盘控制电路的模式设定指令
+#define KBC_MODE				0x47   //使用鼠标模式指令
+
+void wait_KBC_sendready(void);
+void init_keyboard(void);
+void inthandler21(int *esp);
+
+
+/*
+** mouse.c
+*/
+
+#define KEYCMD_SENDTO_MOUSE		0xd4 //告诉KBC下一个指令发给鼠标的指令
+#define MOUSECMD_ENABLE			0xf4 //激活鼠标指令
+
+struct MOUSE_DEC
+/* 鼠标解码结构体 */
+{
+	unsigned char buf[3], phase;
+	int x, y, btn;
+};
+
+void enable_mouse(struct MOUSE_DEC *mdec);
+int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);
+void inthandler2c(int *esp);
 
 /*
 ** graphic.c
