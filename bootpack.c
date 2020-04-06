@@ -72,6 +72,11 @@ void HariMain(void)
 	struct MOUSE_DEC mdec;
 	enable_mouse(&mdec);
 
+	int memtmp;
+	memtmp = memtest_sub(0x00400000, 0xbfffffff) / (1024 * 1024);
+	sprintf(buffer, "Memory: %dMB", memtmp);
+	console_println(binfo, buffer, csptr);
+
 	/* 开始响应 */
 	for(;;){
 		io_cli(); //禁止中断
