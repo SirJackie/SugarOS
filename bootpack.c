@@ -72,9 +72,14 @@ void HariMain(void)
 	struct MOUSE_DEC mdec;
 	enable_mouse(&mdec);
 
-	int memtmp;
-	memtmp = memtest_sub(0x00400000, 0xbfffffff) / (1024 * 1024);
-	sprintf(buffer, "Memory: %dMB", memtmp);
+	//初始化内存管理器
+	unsigned int memtotal = memtest(0x00400000, 0xbfffffff);
+	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+	memman_init(memman);
+	memman_free(memman, 0x00001000, 0x0009e000); /* 0x00001000 - 0x0009efff */
+	memman_free(memman, 0x00400000, memtotal - 0x00400000);
+
+	sprintf(buffer, "Memory: %dMB", memtotal / (1024 * 1024));
 	console_println(binfo, buffer, csptr);
 
 	/* 开始响应 */

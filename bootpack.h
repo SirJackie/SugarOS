@@ -195,3 +195,27 @@ void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf);
 int fifo8_push(struct FIFO8 *fifo, unsigned char data);
 int fifo8_pop(struct FIFO8 *fifo);
 int fifo8_status(struct FIFO8 *fifo);
+
+/*
+** memory.c
+*/
+#define MEMMAN_FREES		4090	    //设定内存管理器大小为32KB
+#define MEMMAN_ADDR			0x003c0000  //设定内存管理器地址
+struct FREEINFO
+//内存块结构体
+{
+	unsigned int addr, size;
+};
+struct MEMMAN
+//内存管理器结构体
+{
+	int frees, maxfrees, lostsize, losts;
+	struct FREEINFO free[MEMMAN_FREES];
+};
+unsigned int memtest(unsigned int start, unsigned int end);
+void memman_init(struct MEMMAN *man);
+unsigned int memman_total(struct MEMMAN *man);
+unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);
+int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size);
+unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);
+int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
